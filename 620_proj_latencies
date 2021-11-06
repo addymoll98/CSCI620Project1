@@ -1,0 +1,8 @@
+producer	consumer	latency
+FPMUL		FPALU		7
+FPDIV		FPALU		11
+FPADD		FPALU		3
+FPLD		FPALU		1
+FPALU		FPSD		1
+LDINT		INT		1
+INT		SDINT		0
