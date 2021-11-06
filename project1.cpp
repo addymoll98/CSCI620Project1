@@ -15,6 +15,17 @@ Due 11/19/2021
 
 using namespace std;
 
+struct ReservationStation { //-1 will indicate an empty field
+	string Name;
+	bool Busy;
+	string Op;
+	int Vj;
+	int Vk;
+	string Qj;
+	string Qk;
+	int A;	
+};
+
 /*
 
 struct InstructionStat{
@@ -23,11 +34,7 @@ struct InstructionStat{
 	bool WriteResult=0;
 }
 
-struct ReservationStation (
-	int Op; //operation, using a numberical code?
-	int Vj;
-	
-)
+
 
 //Hmm. not really sure yet what to do here lol, probably not a struct but some array or something
 struct RegisterStat(
@@ -126,7 +133,42 @@ int main(){
 	string projectLatencies;
 	fstream latencies;
 	string instructionInput;
-	fstream input;
+	fstream instuctionInput;
+	
+	//instructionStatus[i][0]==issue cc, [i][1]==execute cycle, [i][2]== write cycle
+	int instructionStatus[20][3] ;//assumes for now no more than 20 instructions
+	for(int i=0; i<20; i++){
+		for (int j=0; j<3; j++){
+			instructionStatus[i][j]=0;
+		}
+	}
+
+	//initialize reservation stations, start with 2 load, 3 add, 2 mult. Are these specified somewhere??
+	ReservationStation RS[7];
+	RS[0].Name="Load1"; RS[1].Name="Load2"; 
+	RS[2].Name="Add1"; RS[3].Name="Add2"; RS[4].Name="Add3";
+	RS[5].Name="Mult1"; RS[6].Name="Mult2";
+	for(int i=0; i<7; i++){
+		RS[i].Busy=0;
+		RS[i].Op="";
+		RS[i].Vj=-1;
+		RS[i].Vk=-1;
+		RS[i].Qj="";
+		RS[i].Qk="";
+		RS[i].A=-1;
+	}
+	
+	// struct ReservationStation RS[]={ 
+		// {Name="Load1", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
+		// {Name="Load2", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
+		// {Name="Add1", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
+		// {Name="Add2", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
+		// {Name="Add3", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
+		// {Name="Mult1", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
+		// {Name="Mult2", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
+	// };
+	
+	//initialize reservation stations
 	
 	
 	//Open project files
@@ -135,9 +177,7 @@ int main(){
 	cin >> projectLatencies; 
 	cout << "File path is" << projectLatencies;
 	
-	cout << "File path for Instruction inpu file: ";
-	cin >> instructionInput;
-	cout << "File path is" << instructionInput;
+
 	
 	latencies.open(projectLatencies.c_str());
 	
@@ -157,6 +197,8 @@ int main(){
 	
 	string producer, consumer, strnumber;
 	int number;
+	
+	//instuctionInput IS NOT BEING READ IN CORRECTLY AS OF NOW!!!
 	
 	while (latencies >> producer >> consumer >> strnumber){
 		stringstream numberValue(strnumber);
@@ -186,6 +228,7 @@ int main(){
 	
 	latencies.close();
 
+	
 	cout<< FPMUL << endl;
 	cout<< FPDIV << endl; 
 	cout<< FPADD << endl; 
@@ -194,67 +237,96 @@ int main(){
 	cout<< LDINT << endl; 
 	cout<< INT << endl;
 	
-	input.open(instructionInput.c_str());
 	
-	while (!input){
-		cout << "File could not be read. Reenter file path for Input file: ";
+	cout << "File path for Instruction inpu file: ";
+	cin >> instructionInput;
+	cout << "File path is" << instructionInput;
+	
+	instuctionInput.open(instructionInput.c_str());
+	
+	while (!instuctionInput){
+		cout << "File could not be read. Reenter file path for instuctionInput file: ";
 		cin >> instructionInput; 
 		cout << "File path is" << instructionInput;
-		input.open(instructionInput.c_str());
+		instuctionInput.open(instructionInput.c_str());
 	}
 	
 	
-	/*
-	int Op; //The operation to perform on source operands S1 and S2
-	int Qj, Qk; //The reservation stations
-	int Vj, Vk; //The value of the source operands. 
-	int A; //infomraiton for memory address calculation, load or store
-	bool Busy; //indicates reservation station and accompanying functional unit are occupied
-	int Qi; //number of the reservatoin station containing operation whos resulte is stored in register
-	*/
+	//MAIN PART OF PROGRAM
 	
-	/*
-	To get started, read in the first line
-	initialize an instruction status
-	intialize a reservation station
+	//READ AN INPUT LINE
+	//ISSUE IT DURING THAT CLOCK CYCLE
 	
-	*/
-	
-	
-	
-	/*
-	if FP operation, wait until Station r empty, then IssueFP()
-	*/	
-	
-	/*
-	if Load or store, wait until Buffer r empty, then IssueLS()
-	*/
-	
-	/*
-	If load only IssueL()
-	*/
+	bool done=0;
+	int cc=0;
+	int instructionNumber=0;
+	int loop;
+	while(!done){
+		cc++; //increment the clock cycle
+		string operation, operands;
+		
+		//read an input line *****IGNORING LOOPS FOR NOW, COME BACK AND FIX THAT!!*********
+		instructionInput >> operation >> operands;
+		if (operation=="loop:"){
+			loop=instructionNumber;
+			operation=operands;
+			instructionInput >> operands;
+			//plus, whatever else needs to be done on a loop?
+		}
+		
+		if (operation=="FLD" | operation== "FSD"){
+			//readFLS(instuctionInput);
+		}
+		else if (operation=="FADD.D" | operation=="FSUB.D" | operation=="FMUL.D" | operation=="FDIV.D"){
+				//readFPop(instructionInput);
+		}
+		else if (operation== "ADD" | operation== "SUB"){
+				//readADD(instructionInput);
+		}
+		else if (operation=="LD" | operation=="SD"){
+				//readLS(instructionInput);
+		}
+		else if (operation=="ADDI" | operation=="SUBI"){
+				//readADDI(instructionInput);
+		}
+		else if (operation=="BNEZ"){
+			//readBNEZ(instructionInput);
+		}
 
-	/*
-	If Store only IssueS()
-	*/
+		
+		
+		//If reservation station avaiable , **FOR NOW, ASSUME THEY ARE, HOW MANY ARE THERE??**
+			
+			//issue
+			
+			//write the clock cycle in the table
+			
+			//Go back and check on working instructions
+				
+				//if done w/ execute
+					//write to cdb
+					//write clock cycle in the table
+					
+				//if in issue
+					//check if instructions are available and move to execute
+					//write the clock cycle in the table
+		
+		//while reservation station not abailable, 
+			
+			//Go back and check on working instructions
+				
+				//if done w/ execute
+					//write to cdb
+					//write clock cycle in the table
+					
+				//if in issue
+					//check if instructions are available and move to execute
+					//write the clock cycle in the table
+			//increment the clock cycle
+			
+		instructionNumber++;
+	}
 	
-	/*
-	If RS[r].Qj=0 & (RS[r].Qk=0), ExecuteFP()
-	*/
-	
-	/*
-	If RS[r].Qj=0 & r is head of load-store queue, ExecuteLS1()
-	*/
-	
-	/*
-	If execution complete at r and CDB avaialble, Write()
-	*/
-	
-	/*
-	execution complete at r and RS[r].Qk=0, Store()
-	*/
-	
-	
-	
+
 	return 0;
 }
