@@ -7,10 +7,15 @@ Due 11/19/2021
 //In the textbook, this stuff is on pages like 200 range-ish
 
 #include <iostream>
+#include <sstream>
+#include <fstream>
+#include <bits/stdc++.h>
 #include <stdio.h>
 #include <stdbool.h>
 
 using namespace std;
+
+/*
 
 struct InstructionStat{
 	bool Issue=0;
@@ -113,14 +118,109 @@ void Store(){
 	RS[r].Busy=0;
 }
 
+
+*/
+
 int main(){
 	
+	string projectLatencies;
+	fstream latencies;
+	string instructionInput;
+	fstream input;
+	
+	
+	//Open project files
+	
+	cout << "File path for Latencies file: ";
+	cin >> projectLatencies; 
+	cout << "File path is" << projectLatencies;
+	
+	cout << "File path for Instruction inpu file: ";
+	cin >> instructionInput;
+	cout << "File path is" << instructionInput;
+	
+	latencies.open(projectLatencies.c_str());
+	
+	while (!latencies){
+		cout << "File could not be read. Reenter file path for Latencies file: ";
+		cin >> projectLatencies; 
+		cout << "File path is" << projectLatencies;
+		latencies.open(projectLatencies.c_str());
+	}
+	
+
+	
+	//Read latencies files
+	
+	//initialize latencies
+	int FPMUL, FPDIV, FPADD, FPLD, FPALUfpsd, LDINT, INT;
+	
+	string producer, consumer, strnumber;
+	int number;
+	
+	while (latencies >> producer >> consumer >> strnumber){
+		stringstream numberValue(strnumber);
+		numberValue >> number;
+		if (producer=="FPMUL"){
+			FPMUL >> number;
+		}
+		if (producer=="FPDIV"){
+			FPDIV >> number;
+		}
+		if (producer=="FPADD"){
+			FPADD >> number;
+		}
+		if (producer=="FPLD"){
+			FPLD >> number;
+		}
+		if (producer=="FPALUfpsd"){
+			FPALUfpsd >> number;
+		}
+		if (producer=="LDINT"){
+			LDINT >> number;
+		}
+		if (producer=="INT"){
+			INT >> number;
+		}	
+	}
+	
+	latencies.close();
+
+	cout<< FPMUL << endl;
+	cout<< FPDIV << endl; 
+	cout<< FPADD << endl; 
+	cout<< FPLD << endl; 
+	cout<< FPALUfpsd << endl; 
+	cout<< LDINT << endl; 
+	cout<< INT << endl;
+	
+	input.open(instructionInput.c_str());
+	
+	while (!input){
+		cout << "File could not be read. Reenter file path for Input file: ";
+		cin >> instructionInput; 
+		cout << "File path is" << instructionInput;
+		input.open(instructionInput.c_str());
+	}
+	
+	
+	/*
 	int Op; //The operation to perform on source operands S1 and S2
 	int Qj, Qk; //The reservation stations
 	int Vj, Vk; //The value of the source operands. 
 	int A; //infomraiton for memory address calculation, load or store
 	bool Busy; //indicates reservation station and accompanying functional unit are occupied
 	int Qi; //number of the reservatoin station containing operation whos resulte is stored in register
+	*/
+	
+	/*
+	To get started, read in the first line
+	initialize an instruction status
+	intialize a reservation station
+	
+	*/
+	
+	
 	
 	/*
 	if FP operation, wait until Station r empty, then IssueFP()
