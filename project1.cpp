@@ -16,13 +16,13 @@ Due 11/19/2021
 using namespace std;
 
 struct ReservationStation { //-1 will indicate an empty field
-	string Name;
-	bool Busy;
-	string Op;
-	int Vj;
-	int Vk;
-	string Qj;
-	string Qk;
+//	string Name;
+	bool Busy=0;
+	string Op="";
+	int Vj=-1;
+	int Vk=-1;
+	struct ReservationStation *Qj=NULL;
+	struct ReservationStation *Qk=NULL;
 	int A;	
 };
 
@@ -144,19 +144,27 @@ int main(){
 	}
 
 	//initialize reservation stations, start with 2 load, 3 add, 2 mult. Are these specified somewhere??
-	ReservationStation RS[7];
-	RS[0].Name="Load1"; RS[1].Name="Load2"; 
-	RS[2].Name="Add1"; RS[3].Name="Add2"; RS[4].Name="Add3";
-	RS[5].Name="Mult1"; RS[6].Name="Mult2";
-	for(int i=0; i<7; i++){
-		RS[i].Busy=0;
-		RS[i].Op="";
-		RS[i].Vj=-1;
-		RS[i].Vk=-1;
-		RS[i].Qj="";
-		RS[i].Qk="";
-		RS[i].A=-1;
-	}
+	// ReservationStation RS[7];
+	// RS[0].Name="Load1"; RS[1].Name="Load2"; 
+	// RS[2].Name="Add1"; RS[3].Name="Add2"; RS[4].Name="Add3";
+	// RS[5].Name="Mult1"; RS[6].Name="Mult2";
+	// for(int i=0; i<7; i++){
+		// RS[i].Busy=0;
+		// RS[i].Op="";
+		// RS[i].Vj=-1;
+		// RS[i].Vk=-1;
+		// RS[i].Qj="";
+		// RS[i].Qk="";
+		// RS[i].A=-1;
+	// }
+	
+	ReservationStation Load1;
+	ReservationStation Load2;
+	ReservationStation Add1;
+	ReservationStation Add2;
+	ReservationStation Add3;
+	ReservationStation Mult1;
+	ReservationStation Mult2;
 	
 	// struct ReservationStation RS[]={ 
 		// {Name="Load1", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
