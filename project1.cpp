@@ -8,6 +8,8 @@ Due 11/19/2021
 
 #include <iostream>
 #include <sstream>
+#include <iomanip>
+#include <vector>
 #include <fstream>
 #include <bits/stdc++.h>
 #include <stdio.h>
@@ -24,6 +26,12 @@ struct ReservationStation { //-1 will indicate an empty field
 	struct ReservationStation *Qj=NULL;
 	struct ReservationStation *Qk=NULL;
 	int A;	
+};
+
+struct latencies{ //declaring struct outside to use vectors - g++ compiler errors
+    string producer;
+    string consumer;
+    string latency;     //storing it as a string for now, convert to int using stringstream
 };
 
 /*
@@ -131,7 +139,7 @@ void Store(){
 int main(){
 	
 	string projectLatencies;
-	fstream latencies;
+//	fstream latencies;
 	string instructionInput;
 	fstream instuctionInput;
 	
@@ -183,72 +191,71 @@ int main(){
 	
 	cout << "File path for Latencies file: ";
 	cin >> projectLatencies; 
-	cout << "File path is" << projectLatencies;
+	cout << "File path is" << projectLatencies << endl;
 	
+	//Sohaib's version:
+	
+	vector<latencies> l; //vector named l for latencies struct
 
+    ifstream latFile(projectLatencies.c_str());
+
+    int i = 0;
+
+    while(!latFile.eof()) {
+        l.push_back(latencies()); //pushing a latencies struct object into the vector every time
+        latFile >> l[i].producer >> l[i].consumer >> l[i].latency; //then adding the values from the latencies file into that particular struct object
+        i++;
+    }
+    latFile.close();
 	
-	latencies.open(projectLatencies.c_str());
-	
-	while (!latencies){
-		cout << "File could not be read. Reenter file path for Latencies file: ";
-		cin >> projectLatencies; 
-		cout << "File path is" << projectLatencies;
-		latencies.open(projectLatencies.c_str());
+	int FPMUL, FPDIV, FPADD, FPLD, FPALU, LDINT, INT;
+
+	for(int i=0; i<l.size(); i++){
+		stringstream ss;
+		if (l[i].producer=="FPMUL"){
+			ss << l[i].latency;
+			ss >> FPMUL;
+		}
+		else if (l[i].producer=="FPDIV"){
+			ss <<l[i].latency;
+			ss >> FPDIV;
+		}
+		else if (l[i].producer=="FPADD"){
+			ss <<l[i].latency;
+			ss >> FPADD;
+		}
+		else if (l[i].producer=="FPLD"){
+			ss <<l[i].latency;
+			ss >> FPLD;
+		}
+		else if (l[i].producer=="FPALU"){
+			ss <<l[i].latency;
+			ss >> FPALU;
+		}
+		else if (l[i].producer=="LDINT"){
+			ss <<l[i].latency;
+			ss >> LDINT;
+		}
+		else if (l[i].producer=="INT"){
+			ss <<l[i].latency;
+			ss >> INT;	
+		}			
 	}
-	
-
-	
-	//Read latencies files
-	
-	//initialize latencies
-	int FPMUL, FPDIV, FPADD, FPLD, FPALUfpsd, LDINT, INT;
-	
-	string producer, consumer, strnumber;
-	int number;
-	
-	//instuctionInput IS NOT BEING READ IN CORRECTLY AS OF NOW!!!
-	
-	while (latencies >> producer >> consumer >> strnumber){
-		stringstream numberValue(strnumber);
-		numberValue >> number;
-		if (producer=="FPMUL"){
-			FPMUL >> number;
-		}
-		if (producer=="FPDIV"){
-			FPDIV >> number;
-		}
-		if (producer=="FPADD"){
-			FPADD >> number;
-		}
-		if (producer=="FPLD"){
-			FPLD >> number;
-		}
-		if (producer=="FPALUfpsd"){
-			FPALUfpsd >> number;
-		}
-		if (producer=="LDINT"){
-			LDINT >> number;
-		}
-		if (producer=="INT"){
-			INT >> number;
-		}	
-	}
-	
-	latencies.close();
-
 	
 	cout<< FPMUL << endl;
 	cout<< FPDIV << endl; 
 	cout<< FPADD << endl; 
 	cout<< FPLD << endl; 
-	cout<< FPALUfpsd << endl; 
+	cout<< FPALU << endl; 
 	cout<< LDINT << endl; 
 	cout<< INT << endl;
+
+	
 	
 	
 	cout << "File path for Instruction inpu file: ";
 	cin >> instructionInput;
-	cout << "File path is" << instructionInput;
+	cout << "File path is" << instructionInput <<endl;
 	
 	instuctionInput.open(instructionInput.c_str());
 	
@@ -264,6 +271,8 @@ int main(){
 	
 	//READ AN INPUT LINE
 	//ISSUE IT DURING THAT CLOCK CYCLE
+	
+	
 	
 	bool done=0;
 	int cc=0;
