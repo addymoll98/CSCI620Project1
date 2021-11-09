@@ -56,7 +56,6 @@ struct RegisterStat(
 )
 
 
-
 void IssueFP(int r, int rs, int Qi, int Qj, int Vj){
 	if(RegisterStat[rs].Qi!=0){
 		(RS[r].Qj)=RegisterStat[rs].Qi);
@@ -146,24 +145,9 @@ int main(){
 	
 	string projectLatencies;
 	string projectInstructions;
+	int i = 0;
+	int j=0;
 	
-	//instructionStatus[i][0]==issue cc, [i][1]==execute cycle, [i][2]== write cycle
-	int instructionStatus[20][3] ;//assumes for now no more than 20 instructions
-	for(int i=0; i<20; i++){
-		for (int j=0; j<3; j++){
-			instructionStatus[i][j]=0;
-		}
-	}
-	
-	//Initialize reservation stations
-	
-	ReservationStation Load1;
-	ReservationStation Load2;
-	ReservationStation Add1;
-	ReservationStation Add2;
-	ReservationStation Add3;
-	ReservationStation Mult1;
-	ReservationStation Mult2;
 	
 	
 //Open latency file
@@ -175,9 +159,8 @@ int main(){
 	vector<latencies> l; //vector named l for latencies struct
 
     ifstream latFile(projectLatencies.c_str());
-
-    int i = 0;
-
+    
+	i=0;
     while(!latFile.eof()) {
         l.push_back(latencies()); //pushing a latencies struct object into the vector every time
         latFile >> l[i].producer >> l[i].consumer >> l[i].latency; //then adding the values from the latencies file into that particular struct object
@@ -268,19 +251,33 @@ int main(){
 	
 	
 	
-	//MAIN PART OF PROGRAM
+/*MAIN PART OF PROGRAM
 	
-	//READ AN INPUT LINE
-	//ISSUE IT DURING THAT CLOCK CYCLE
+//Initialize reservation stations
 	
-	
+	ReservationStation Load1;
+	ReservationStation Load2;
+	ReservationStation Add1;
+	ReservationStation Add2;
+	ReservationStation Add3;
+	ReservationStation Mult1;
+	ReservationStation Mult2;
+
+//Initialize instructionStatus array based on the number of instructions
+//instructionStatus[i][0]==issue cc, [i][1]==execute cycle, [i][2]== write cycle
+	int instructionStatus[ins.size()][3] ;//assumes for now no more than 20 instructions
+	for(i=0; i<ins.size(); i++){
+		for (j=0; j<3; j++){
+			instructionStatus[i][j]=0;
+		}
+	}
 	
 	bool done=0;
 	int cc=0;
 	int instructionNumber=0;
 	while(!done){
 		cc++; //increment the clock cycle
-		//read an input line from the ins vector *****IGNORING LOOPS FOR NOW, COME BACK AND FIX THAT!!********
+		//read an input line from the ins vector
 
 		if (ins[instructionNumber].operation=="FLD" | ins[instructionNumber].operation== "FSD"){
 				//readFLS(instuctionInput);
@@ -301,41 +298,43 @@ int main(){
 			//readBNEZ(instructionInput);
 		}
 
+
+		//check if any of the instrucitons that have not begun execution yet now have only null pointers in Qj and Qk
+		//(that is, they either just got issued last cc and don't need to wait on anything, or what they're waiting on wrote last cc)
+			//if yes, change InstructionStat[i][2] to cc, they can begin execution.
+					//change write InstructionStat[i][3]=cc+latency for this instr typede
+					//except, while InstructionStat[all][3]== cc+latency for any instruction, then add 1 to that value
+			
+		if (instructionNumber<=ins.size()){
+			//check if any reservation stations are available. If not, then we will read  instruciton next time.
+				//if reservation station avaialble:
+					//load instruciton itno reservation station
+					instructionNumber++
+		}	
+		
+		//Check if anything writes to the CDB this clock cyle, ie if instructionStatus[j][3]==cc for any instruction
+				//ie, it's writing ot the CDB this CC
+				//check if anything of the reservation stations point to its reservation station
+					//if yes, clear null those pointers
+					//set the reservation stations to available 
+		
+		cc++;
+		
+			
+		//after doing all necissary updates for that clock cycle, check if any of the instructions are not complete
+		//if everything is complete, then set done=1 to exit the loop
+		for (i=0; i<ins.size(); i++){
+			done=1; //set to done, and change to not done if any instruction is not complete
+			if (instructionStatus[i][3]==0){
+				done=0;
+			}
+		}
 		
 		
-		//If reservation station avaiable , **FOR NOW, ASSUME THEY ARE, HOW MANY ARE THERE??**
-			
-			//issue
-			
-			//write the clock cycle in the table
-			
-			//Go back and check on working instructions
-				
-				//if done w/ execute
-					//write to cdb
-					//write clock cycle in the table
-					
-				//if in issue
-					//check if instructions are available and move to execute
-					//write the clock cycle in the table
-		
-		//while reservation station not abailable, 
-			
-			//Go back and check on working instructions
-				
-				//if done w/ execute
-					//write to cdb
-					//write clock cycle in the table
-					
-				//if in issue
-					//check if instructions are available and move to execute
-					//write the clock cycle in the table
-			//increment the clock cycle
-			
-		instructionNumber++;
 		done=1; //done to exit loop until I get to the done logic
 	}
 	
 
 	return 0;
+*/
 }
