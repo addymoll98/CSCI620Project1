@@ -34,6 +34,12 @@ struct latencies{ //declaring struct outside to use vectors - g++ compiler error
     string latency;     //storing it as a string for now, convert to int using stringstream
 };
 
+struct instructions{ //deal with reading that something is a loop..
+	bool loop=0;
+	string operation;
+	string operands; //store all operands as one string for now, parse after reading operation
+};
+
 /*
 
 struct InstructionStat{
@@ -139,9 +145,7 @@ void Store(){
 int main(){
 	
 	string projectLatencies;
-//	fstream latencies;
-	string instructionInput;
-	fstream instuctionInput;
+	string projectInstructions;
 	
 	//instructionStatus[i][0]==issue cc, [i][1]==execute cycle, [i][2]== write cycle
 	int instructionStatus[20][3] ;//assumes for now no more than 20 instructions
@@ -150,21 +154,8 @@ int main(){
 			instructionStatus[i][j]=0;
 		}
 	}
-
-	//initialize reservation stations, start with 2 load, 3 add, 2 mult. Are these specified somewhere??
-	// ReservationStation RS[7];
-	// RS[0].Name="Load1"; RS[1].Name="Load2"; 
-	// RS[2].Name="Add1"; RS[3].Name="Add2"; RS[4].Name="Add3";
-	// RS[5].Name="Mult1"; RS[6].Name="Mult2";
-	// for(int i=0; i<7; i++){
-		// RS[i].Busy=0;
-		// RS[i].Op="";
-		// RS[i].Vj=-1;
-		// RS[i].Vk=-1;
-		// RS[i].Qj="";
-		// RS[i].Qk="";
-		// RS[i].A=-1;
-	// }
+	
+	//Initialize reservation stations
 	
 	ReservationStation Load1;
 	ReservationStation Load2;
@@ -174,26 +165,12 @@ int main(){
 	ReservationStation Mult1;
 	ReservationStation Mult2;
 	
-	// struct ReservationStation RS[]={ 
-		// {Name="Load1", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
-		// {Name="Load2", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
-		// {Name="Add1", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
-		// {Name="Add2", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
-		// {Name="Add3", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
-		// {Name="Mult1", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
-		// {Name="Mult2", Busy=0, Op="", Vj=-1, Vk=-1, Qj="", Qk="", A=-1},
-	// };
 	
-	//initialize reservation stations
-	
-	
-	//Open project files
+//Open latency file
 	
 	cout << "File path for Latencies file: ";
 	cin >> projectLatencies; 
 	cout << "File path is" << projectLatencies << endl;
-	
-	//Sohaib's version:
 	
 	vector<latencies> l; //vector named l for latencies struct
 
@@ -208,9 +185,11 @@ int main(){
     }
     latFile.close();
 	
+	//store latencies into individual variables
+	
 	int FPMUL, FPDIV, FPADD, FPLD, FPALU, LDINT, INT;
 
-	for(int i=0; i<l.size(); i++){
+	for(int i=0; i<l.size(); i++){ 
 		stringstream ss;
 		if (l[i].producer=="FPMUL"){
 			ss << l[i].latency;
@@ -242,6 +221,8 @@ int main(){
 		}			
 	}
 	
+	//display all to verify correctness
+	
 	cout<< FPMUL << endl;
 	cout<< FPDIV << endl; 
 	cout<< FPADD << endl; 
@@ -251,20 +232,40 @@ int main(){
 	cout<< INT << endl;
 
 	
+//Open instruction file
+	
+	cout << "File path for Instruction input file: ";
+	cin >> projectInstructions;
+	cout << "File path is" << projectInstructions <<endl;
+	
+	vector<instructions> ins; //vector names ins for instructions struct
+	
+	ifstream insFile(projectInstructions.c_str());
+
+	i=0; 
+	
+	while(!insFile.eof()) {
+        ins.push_back(instructions()); //pushing a instructions struct object into the vector every time
+		insFile>> ins[i].operation; //add the value from the instructions file into operation struct object
+		if (ins[i].operation=="loop:"){ //check if the value added was "loop". If yes, then mark loop as true and add operation
+			ins[i].loop=1;
+			insFile >> ins[i].operation;
+		}
+        insFile >> ins[i].operands; //then adding the operands from the instructions file into operands object
+        i++;
+    }
+    insFile.close();
 	
 	
-	cout << "File path for Instruction inpu file: ";
-	cin >> instructionInput;
-	cout << "File path is" << instructionInput <<endl;
 	
-	instuctionInput.open(instructionInput.c_str());
-	
-	while (!instuctionInput){
-		cout << "File could not be read. Reenter file path for instuctionInput file: ";
-		cin >> instructionInput; 
-		cout << "File path is" << instructionInput;
-		instuctionInput.open(instructionInput.c_str());
+	//prints out input for testing purposes
+	for (int i=0; i<ins.size(); i++){
+		if (ins[i].loop==1)
+			cout<< "loop: ";
+		cout << ins[i].operation << " " << ins[i].operands << endl;
 	}
+
+	
 	
 	
 	//MAIN PART OF PROGRAM
@@ -277,36 +278,26 @@ int main(){
 	bool done=0;
 	int cc=0;
 	int instructionNumber=0;
-	int loop;
 	while(!done){
 		cc++; //increment the clock cycle
-		string operation, operands;
-		
-		//read an input line *****IGNORING LOOPS FOR NOW, COME BACK AND FIX THAT!!*********
-		instructionInput >> operation >> operands;
-		if (operation=="loop:"){
-			loop=instructionNumber;
-			operation=operands;
-			instructionInput >> operands;
-			//plus, whatever else needs to be done on a loop?
+		//read an input line from the ins vector *****IGNORING LOOPS FOR NOW, COME BACK AND FIX THAT!!********
+
+		if (ins[instructionNumber].operation=="FLD" | ins[instructionNumber].operation== "FSD"){
+				//readFLS(instuctionInput);
 		}
-		
-		if (operation=="FLD" | operation== "FSD"){
-			//readFLS(instuctionInput);
-		}
-		else if (operation=="FADD.D" | operation=="FSUB.D" | operation=="FMUL.D" | operation=="FDIV.D"){
+		else if (ins[instructionNumber].operation=="FADD.D" | ins[instructionNumber].operation=="FSUB.D" | ins[instructionNumber].operation=="FMUL.D" | ins[instructionNumber].operation=="FDIV.D"){
 				//readFPop(instructionInput);
 		}
-		else if (operation== "ADD" | operation== "SUB"){
+		else if (ins[instructionNumber].operation== "ADD" | ins[instructionNumber].operation== "SUB"){
 				//readADD(instructionInput);
 		}
-		else if (operation=="LD" | operation=="SD"){
+		else if (ins[instructionNumber].operation=="LD" | ins[instructionNumber].operation=="SD"){
 				//readLS(instructionInput);
 		}
-		else if (operation=="ADDI" | operation=="SUBI"){
+		else if (ins[instructionNumber].operation=="ADDI" | ins[instructionNumber].operation=="SUBI"){
 				//readADDI(instructionInput);
 		}
-		else if (operation=="BNEZ"){
+		else if (ins[instructionNumber].operation=="BNEZ"){
 			//readBNEZ(instructionInput);
 		}
 
@@ -342,6 +333,7 @@ int main(){
 			//increment the clock cycle
 			
 		instructionNumber++;
+		done=1; //done to exit loop until I get to the done logic
 	}
 	
 
