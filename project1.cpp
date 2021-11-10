@@ -1,9 +1,6 @@
-/*
-CSCI 620
-Project 1
-Due 11/19/2021
-*/
 // CSCI620.cpp : This file contains the 'main' function. Program execution begins and ends there.
+
+
 #include <iostream>
 #include <vector>
 #include <fstream>
@@ -67,6 +64,7 @@ public:
 	int Vk;
 	int lat;
 	int op;
+	int a;
 	int result;
 	bool resultReady;
 	int instNum;
@@ -82,12 +80,13 @@ public:
 		Qj = 1;
 		Qk = 1;
 		Vj = 0;
+		a = 0;
 		Vk = 0;
 		instNum = 100000;
 		ISSUE_Lat = 0;
 		WRITEBACK_Lat = 0;
 	}
-	reservationStation(int op1, int rsop) {
+	reservationStation(int op1, int rsop, int ea) {
 		busy = false;
 		op = op1;
 		lat = 0;
@@ -95,6 +94,7 @@ public:
 		resultReady = false;
 		Qj = rsop;
 		Qk = rsop;
+		a = ea;
 		Vj = 0;
 		Vk = 0;
 		instNum = 100000;
@@ -155,13 +155,15 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	// -> r = that open spot.
 	// Boundry's of given RS
 	int addresst = 4;
-	int mulresst = 4;
-	int divresst = 4;
+	int mulresst = 8;
+	int divresst = 12;
+	int ldsdresst = 16;
+	int rstno = 999;//reservation station number. Initializer to avoid random values.
 	if (r == 0) // if op is FADD
 	{
 		for (int i = 0; i < addresst; i++) {
 			if (!resstation1[i].busy) {
-				r = i;
+				rstno = i;
 				resstation1[i].op = 0;
 				rstationFree = true;
 				currentInst_ISSUE++;
@@ -175,7 +177,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	{
 		for (int i = 0; i < addresst; i++) {
 			if (!resstation1[i].busy) {
-				r = i;
+				rstno = i;
 				resstation1[i].op = 1;
 				rstationFree = true;
 				currentInst_ISSUE++;
@@ -185,11 +187,11 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 		if (!rstationFree)
 			return 1;
 	}
-	if (r == 2)
+	if (r == 2)// if op is FMUL
 	{
-		for (int i = 0; i < mulresst; i++) {
+		for (int i = 4; i < mulresst; i++) {
 			if (!resstation1[i].busy) {
-				r = i;
+				rstno = i;
 				resstation1[i].op = 2;
 				rstationFree = true;
 				currentInst_ISSUE++;
@@ -200,11 +202,11 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 			return 1;
 
 	}
-	if (r == 3)
+	if (r == 3)// if op is FDIV
 	{
-		for (int i = 0; i < divresst; i++) {
+		for (int i = 8; i < divresst; i++) {
 			if (!resstation1[i].busy) {
-				r = i;
+				rstno = i;
 				resstation1[i].op = 3;
 				rstationFree = true;
 				currentInst_ISSUE++;
@@ -214,41 +216,135 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 		if (!rstationFree)
 			return 1;
 	}
+	if (r == 4)//for load
+	{
+		for (int i = 12; i < ldsdresst; i++) {
+			if (!resstation1[i].busy) {
+				rstno = i;
+				resstation1[i].op = 4;
+				rstationFree = true;
+				currentInst_ISSUE++;
+				resstation1[i].a = 0;
+				break;
+			}
+		}
+		if (!rstationFree)
+			return 1;
+	}
+	if (r == 5)//for store
+	{
+		for (int i = 12; i < ldsdresst; i++) {
+			if (!resstation1[i].busy) {
+				rstno = i;
+				resstation1[i].op = 5;
+				rstationFree = true;
+				currentInst_ISSUE++;
+				resstation1[i].a = 1;
+				break;
+			}
+		}
+		if (!rstationFree)
+			return 1;
+	}
+
+	//regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi = rstno;// initialize destination register status to reservation station
 	//**** Initialize characteristics of issued instruction
 	// if operand rs is available -> set value of operand
 	// (Vj) to given register value
 	// else point operand to the reservation station (Qj)
 	// that will give the operand value
-	if (regstatus1[inst1[currentInst_ISSUE - 1].rs].Qi == regEmpty) {
-		resstation1[r].Vj = reg1[inst1[currentInst_ISSUE - 1].rs];
-		resstation1[r].Qj = OperandAvailable;
-	}
-	else {
-		resstation1[r].Qj = regstatus1[inst1[currentInst_ISSUE - 1].rs].Qi;
-	}
-	// if operand rt is available -> set value of
-	// operand (Vk) to given register value
-	// else point operand to the reservation station
-	// (Qk) that will give the operand value
-	if (regstatus1[inst1[currentInst_ISSUE - 1].rt].Qi == regEmpty) {
-		resstation1[r].Vk = reg1[inst1[currentInst_ISSUE - 1].rt];
-		resstation1[r].Qk = OperandAvailable;
-	}
-	else {
-		resstation1[r].Qk = regstatus1[inst1[currentInst_ISSUE - 1].rt].Qi;
+	// NOTE: since currentInst was in incremented we must
+	// do currentINST_ISSUE-1
+	if (resstation1[rstno].a == 999 || resstation1[rstno].a == 1 || resstation1[rstno].a == 0)
+	{
+		// For store data
+		if (resstation1[rstno].a == 11) // Ignore the if the part. Trying to work something out for load and store logic. Focus on the else part
+		{
+			if (regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi == regEmpty)
+			{
+				resstation1[rstno].Vj = reg1[inst1[currentInst_ISSUE - 1].rd];
+				resstation1[rstno].Qj = OperandAvailable;
+
+			}
+			else
+			{
+				resstation1[rstno].Qj = regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi;
+			}
+
+			// given reservation station is now busy
+			// until write back stage is completed.
+			resstation1[rstno].busy = true;
+			resstation1[rstno].ISSUE_Lat = 0;
+			// set reservation station instuction
+			// number == current instruction
+
+			// set clock cycle for issue time
+			inst1[currentInst_ISSUE - 1].issueClock = Clock;
+			// The register status Qi is set to the current
+			// instructions reservation station location r
+			regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi = rstno;
+		}
+		else
+		{
+			//check if rs register value is default. If it is empty it means that the rs value is available
+			// if operand rs is available -> set value of
+			// operand (Vj) to given register value
+			// else point operand to the reservation station
+			// (Qj) that will give the operand value
+			if (regstatus1[inst1[currentInst_ISSUE - 1].rs].Qi == regEmpty) {
+				resstation1[rstno].Vj = reg1[inst1[currentInst_ISSUE - 1].rs];
+				resstation1[rstno].Qj = OperandAvailable;
+			}
+			else {
+				resstation1[rstno].Qj = regstatus1[inst1[currentInst_ISSUE - 1].rs].Qi;
+			}
+			// if operand rt is available -> set value of
+			// operand (Vk) to given register value
+			// else point operand to the reservation station
+			// (Qk) that will give the operand value
+			if (regstatus1[inst1[currentInst_ISSUE - 1].rt].Qi == regEmpty) {
+				resstation1[rstno].Vk = reg1[inst1[currentInst_ISSUE - 1].rt];
+				resstation1[rstno].Qk = OperandAvailable;
+			}
+			else {
+				resstation1[rstno].Qk = regstatus1[inst1[currentInst_ISSUE - 1].rt].Qi;
+			}
+
+			// given reservation station is now busy
+			// until write back stage is completed.
+			resstation1[rstno].busy = true;
+			resstation1[rstno].ISSUE_Lat = 0;
+			// set clock cycle for issue time
+			inst1[currentInst_ISSUE - 1].issueClock = Clock;
+			// The register status Qi is set to the current
+			// instructions reservation station location r
+			regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi = rstno;
+
+		}
 	}
 
-	resstation1[r].busy = true;
-	resstation1[r].ISSUE_Lat = 0;
-	// set reservation station instuction
-	// number == current instruction
-	resstation1[r].instNum = currentInst_ISSUE - 1;
-	// set clock cycle for issue time
-	inst1[currentInst_ISSUE - 1].issueClock = Clock;
-	// The register status Qi is set to the current
-	// instructions reservation station location r
-	regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi = r;
-	//cout << "Current Instruction issue" << currentInst_ISSUE;
+	// For Load Instruction
+	/*if (resstation1[rstno].a == 0)
+	{
+		//Handle ld instuction
+		resstation1[rstno].Vj = 25;
+		resstation1[rstno].Vk = 25;
+		resstation1[rstno].Qj = OperandAvailable;
+		resstation1[rstno].Qk = OperandAvailable;
+		// given reservation station is now busy
+		// until write back stage is completed.
+		resstation1[rstno].busy = true;
+		resstation1[rstno].ISSUE_Lat = 0;
+		// set reservation station instuction
+		// number == current instruction
+
+		// set clock cycle for issue time
+		inst1[currentInst_ISSUE - 1].issueClock = Clock;
+
+	}*/
+	//set instNum property of reservation station to current Instruction number. Used in execute and writback to set clock value for execute & writeback
+	resstation1[rstno].instNum = currentInst_ISSUE - 1;
+
 	return 2;
 }
 
@@ -263,13 +359,13 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 			if (resstation1[i].ISSUE_Lat >= ISSUE_Lat)//check if issue latency is equal to 1 else wait for 1 cc
 			{
 
-				if (resstation1[i].Qj == OperandAvailable && resstation1[i].Qj == OperandAvailable)// check for operandavailable flag in Qj & Qk
+				if (resstation1[i].Qj == OperandAvailable && resstation1[i].Qk == OperandAvailable)// check for operandavailable flag in Qj & Qk
 				{
 					if (inst1[resstation1[i].instNum].executeClockBegin == 0)// check if the executeclockbegin is having default value. Use instNum variable find the instruction number
 					{
 						inst1[resstation1[i].instNum].executeClockBegin = Clock;// if it is issue the current clock value as execution start cycle
 					}
-					resstation1[i].lat++;
+					resstation1[i].lat++;// Increment the latency to match the latency of FMUL,FADD,FSUB etc. If latency matches means that we can perform the execution
 					int temp_operation = resstation1[i].op; // store operation type
 					if (temp_operation == 0)// means FADD Operation
 					{
@@ -339,6 +435,43 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 
 					}
+
+					if (temp_operation == 4)// means ld/sd OR fld/sd Operation
+					{
+						if (resstation1[i].lat == FPALU)
+						{
+
+							resstation1[i].result = resstation1[i].Vj;
+							//we can now complete the execution and update the resultReady flag
+							resstation1[i].resultReady = true;
+							//reset the latency property
+							resstation1[i].lat = 0;
+							resstation1[i].ISSUE_Lat = 0;
+							//set the Executeclock end
+							inst1[resstation1[i].instNum].executeClockEnd = Clock;
+
+						}
+
+
+					}
+
+					if (temp_operation == 5)// means ld/sd OR fld/sd Operation
+					{
+						if (resstation1[i].lat == FPALU)
+						{
+							resstation1[i].result = resstation1[i].Vj;
+							//we can now complete the execution and update the resultReady flag
+							resstation1[i].resultReady = true;
+							//reset the latency property
+							resstation1[i].lat = 0;
+							resstation1[i].ISSUE_Lat = 0;
+							//set the Executeclock end
+							inst1[resstation1[i].instNum].executeClockEnd = Clock;
+
+						}
+
+
+					}
 				}
 			}
 			else
@@ -357,7 +490,7 @@ void writeback(vector<Instruction>& inst1, vector<reservationStation>& resstatio
 	{
 		if (resstation1[i].resultReady) // check if result ready flag is true. If it is true that means execution cycle is completed
 		{
-			if (resstation1[i].WRITEBACK_Lat = WRITEBACK_Lat)//check if writeback latency is equal to 1 else wait for 1 cc
+			if (resstation1[i].WRITEBACK_Lat == WRITEBACK_Lat)//check if writeback latency is equal to 1 else wait for 1 cc
 			{
 				if (inst1[resstation1[i].instNum].writebackClock == 0)// check if writeback clock is in default value.
 				{
@@ -409,6 +542,7 @@ void writeback(vector<Instruction>& inst1, vector<reservationStation>& resstatio
 			else
 			{
 				resstation1[i].WRITEBACK_Lat++;
+				//we wait for 1 clock cycle after executing instruction for writeback
 			}
 		}
 	}
@@ -443,10 +577,6 @@ void printclockcycletable(vector<Instruction> INST) {
 	}
 
 }
-
-
-
-
 
 
 
@@ -537,36 +667,48 @@ int main()
 		 {"F10", 10},
 		 {"F11", 11},
 		 {"F12", 12},
+		 {"X0", 13},
+		 {"X1", 14},
+		 {"X2", 15},
+		 {"X3", 16},
+		 {"X4", 17},
+		 {"X5", 18}
+
 	};
 
 	//Initialize reservation station Class
 
 	reservationStation
-		ADD1(0, OperandInit),
-		ADD2(0, OperandInit),
-		ADD3(0, OperandInit),
-		ADD4(0, OperandInit);
+		ADD1(0, OperandInit, 999),
+		ADD2(0, OperandInit, 999),
+		ADD3(0, OperandInit, 999),
+		ADD4(0, OperandInit, 999);
 	reservationStation
-		MULT1(2, OperandInit),
-		MULT2(2, OperandInit),
-		MULT3(2, OperandInit),
-		MULT4(2, OperandInit);
+		MULT1(2, OperandInit, 999),
+		MULT2(2, OperandInit, 999),
+		MULT3(2, OperandInit, 999),
+		MULT4(2, OperandInit, 999);
 	reservationStation
-		DIV1(3, OperandInit),
-		DIV2(3, OperandInit),
-		DIV3(3, OperandInit),
-		DIV4(3, OperandInit);
+		DIV1(3, OperandInit, 999),
+		DIV2(3, OperandInit, 999),
+		DIV3(3, OperandInit, 999),
+		DIV4(3, OperandInit, 999);
+	reservationStation
+		LDSD1(4, OperandInit, 999),
+		LDSD2(4, OperandInit, 999),
+		LDSD3(4, OperandInit, 999),
+		LDSD4(4, OperandInit, 999);
 
-	vector<reservationStation> resStation = { ADD1,ADD2,ADD3,ADD4,MULT1,MULT2,MULT3,MULT4,DIV1,DIV2,DIV3,DIV4 };
+	vector<reservationStation> resStation = { ADD1,ADD2,ADD3,ADD4,MULT1,MULT2,MULT3,MULT4,DIV1,DIV2,DIV3,DIV4,LDSD1,LDSD2,LDSD3,LDSD4 };
 
 	// Initialize Register Status Class
 	registerStatus
 		F0(regEmpty), F1(regEmpty), F2(regEmpty), F3(regEmpty), F4(regEmpty), F5(regEmpty),
-		F6(regEmpty), F7(regEmpty), F8(regEmpty), F9(regEmpty), F10(regEmpty), F11(regEmpty), F12(regEmpty);
-	vector<registerStatus> registerStatus = { F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12 };
+		F6(regEmpty), F7(regEmpty), F8(regEmpty), F9(regEmpty), F10(regEmpty), F11(regEmpty), F12(regEmpty), X0(regEmpty), X1(regEmpty), X2(regEmpty), X3(regEmpty), X4(regEmpty), X5(regEmpty);
+	vector<registerStatus> registerStatus = { F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,X0, X1, X2, X3, X4, X5 };
 
 	// Initialize register file vector
-	vector<int> registers = { ZERO_REG,1,2,3,4,5,6,7,8,9,10,11,12 };
+	vector<int> registers = { ZERO_REG,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18 };
 
 	// Read Instruction File line by line, Seperate line to words and Initialize Instruction Object of Class Instruction
 	if (isFile.is_open())
@@ -591,10 +733,22 @@ int main()
 					getline(sw, sub, ',');
 					i++;
 					auto it = operation.find(sub);
-					if (it == operation.end()) {
+					if (it == operation.end())
+					{
 						// not found  
 						cout << "Element not foundr" << endl;
-						temp_i.push_back(999);
+
+						// Handle Effective address computation Case like ld/sd
+						int pos1 = sub.find("(");
+						int pos2 = sub.find(")");
+
+						string reg_x = sub.substr(pos1 + 1, pos2 - pos1 - 1);
+						auto itx = operation.find(reg_x);
+						//cout << " Postions of ()" << endl;
+						//cout << pos1 << "  " << pos2 - 1 << "  " << reg_x;
+						//cout << "itx->second" << "  " << itx->second;
+						temp_i.push_back(itx->second);
+
 					}
 
 					else
@@ -611,28 +765,43 @@ int main()
 
 			//cout << "Temp_i size" << temp_i.size()<< endl;
 
-			auto rd1 = temp_i.at(1);
-			auto rs1 = temp_i.at(2);
-			auto rt1 = temp_i.at(3);
-			auto o1 = temp_i.at(0);
+			if (temp_i.size() == 4)
+			{
+				auto rd1 = temp_i.at(1);
+				auto rs1 = temp_i.at(2);
+				auto rt1 = temp_i.at(3);
+				auto o1 = temp_i.at(0);
+				Instruction I(rd1, rs1, rt1, o1);//(rd,rs,rt,operation)
+				inst.push_back(I);
+			}
+			if (temp_i.size() == 3)
+			{
+				auto rd1 = temp_i.at(1);
+				auto rs1 = temp_i.at(2);
+				auto o1 = temp_i.at(0);
+				Instruction I(rd1, rs1, 17, o1);//(rd,rs,rt,operation)
+				inst.push_back(I);
+			}
 
 			//cout << temp_i.at(1) << temp_i.at(2) << temp_i.at(3) << temp_i.at(0);
-			Instruction I(rd1, rs1, rt1, o1); //(rd,rs,rt,operation)
+
 			//cout << "rd1" << I.rd;
-			inst.push_back(I);
+
 			while (!temp_i.empty())
 			{
 				temp_i.pop_back();
 			}
 
 		}
-		/*cout << inst.size()<<"   ";
+		cout << inst.size() << "   ";
 		// Print to check Inst vector is properly initialized
-		for (auto it1 : inst)
-			{
-				cout << it1.opcode << " ";
-			}*/
+		/*for (auto it1 : inst)
+		{
+			cout << it1.opcode << " ";
+		}*/
 	}
+
+	//cout << "Instruction Size"<<inst.size();
 	// Main Loop 
 	do {
 		// Datapath
@@ -642,30 +811,23 @@ int main()
 		execute(inst, resStation, registerStatus, registers, FPMUL, FPDIV, FPADD, FPLD, FPALU, LDINT, INT);
 		writeback(inst, resStation, registerStatus, registers);
 
-		// PRINT
-		//printRegisters(Register);
+		//print cc table
 		printclockcycletable(inst);
 		//cout << "inst" << inst.size();
 		//cout << "Total Writebacks" << Total_WRITEBACKS;
 		//cout << "Total Writebacks" << Total_WRITEBACKS;
 
 		// Check if all reservation stations are empty -> program done
-		// TODO: if LW/SW are added this will need to be udated
+	
 		Done = false;
 		if (Total_WRITEBACKS == inst.size())
 			Done = true;
 		cout << endl;
-	} while (!Done);//**** End functional loop*/
+	} while (!Done);
 
 	return 0;
 }
-// Run program: Ctrl + F5 or Debug > Start Without Debugging menu
-// Debug program: F5 or Debug > Start Debugging menu
 
-// Tips for Getting Started: 
-//   1. Use the Solution Explorer window to add/manage files
-//   2. Use the Team Explorer window to connect to source control
-//   3. Use the Output window to see build output and other messages
-//   4. Use the Error List window to view errors
-//   5. Go to Project > Add New Item to create new code files, or Project > Add Existing Item to add existing code files to the project
-//   6. In the future, to open this project again, go to File > Open > Project and select the .sln file
+
+//TODO:-
+// Clock cycles for load and store Instruction are not working properly. Still need to fix that. Also should add code to handle branching instructions
