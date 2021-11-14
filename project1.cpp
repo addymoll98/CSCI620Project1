@@ -80,7 +80,7 @@ public:
 		Qj = 1;
 		Qk = 1;
 		Vj = 0;
-		a = 0;
+		a = 999;
 		Vk = 0;
 		instNum = 100000;
 		ISSUE_Lat = 0;
@@ -255,75 +255,79 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	// that will give the operand value
 	// NOTE: since currentInst was in incremented we must
 	// do currentINST_ISSUE-1
-	if (resstation1[rstno].a == 999 || resstation1[rstno].a == 1 || resstation1[rstno].a == 0)
-	{
-		// For store data
-		if (resstation1[rstno].a == 11) // Ignore the if the part. Trying to work something out for load and store logic. Focus on the else part
-		{
-			if (regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi == regEmpty)
-			{
-				resstation1[rstno].Vj = reg1[inst1[currentInst_ISSUE - 1].rd];
-				resstation1[rstno].Qj = OperandAvailable;
 
-			}
-			else
-			{
-				resstation1[rstno].Qj = regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi;
-			}
-
-			// given reservation station is now busy
-			// until write back stage is completed.
-			resstation1[rstno].busy = true;
-			resstation1[rstno].ISSUE_Lat = 0;
-			// set reservation station instuction
-			// number == current instruction
-
-			// set clock cycle for issue time
-			inst1[currentInst_ISSUE - 1].issueClock = Clock;
-			// The register status Qi is set to the current
-			// instructions reservation station location r
-			regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi = rstno;
-		}
-		else
-		{
 			//check if rs register value is default. If it is empty it means that the rs value is available
 			// if operand rs is available -> set value of
 			// operand (Vj) to given register value
 			// else point operand to the reservation station
 			// (Qj) that will give the operand value
-			if (regstatus1[inst1[currentInst_ISSUE - 1].rs].Qi == regEmpty) {
-				resstation1[rstno].Vj = reg1[inst1[currentInst_ISSUE - 1].rs];
-				resstation1[rstno].Qj = OperandAvailable;
-			}
-			else {
-				resstation1[rstno].Qj = regstatus1[inst1[currentInst_ISSUE - 1].rs].Qi;
-			}
-			// if operand rt is available -> set value of
-			// operand (Vk) to given register value
-			// else point operand to the reservation station
-			// (Qk) that will give the operand value
-			if (regstatus1[inst1[currentInst_ISSUE - 1].rt].Qi == regEmpty) {
-				resstation1[rstno].Vk = reg1[inst1[currentInst_ISSUE - 1].rt];
-				resstation1[rstno].Qk = OperandAvailable;
-			}
-			else {
-				resstation1[rstno].Qk = regstatus1[inst1[currentInst_ISSUE - 1].rt].Qi;
-			}
 
-			// given reservation station is now busy
-			// until write back stage is completed.
-			resstation1[rstno].busy = true;
-			resstation1[rstno].ISSUE_Lat = 0;
-			// set clock cycle for issue time
-			inst1[currentInst_ISSUE - 1].issueClock = Clock;
-			// The register status Qi is set to the current
-			// instructions reservation station location r
-			regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi = rstno;
+	//for load logic - fix
+	if (resstation1[rstno].a == 0)
+	{
+		// check if rs field offset is available. We are not calculating but just checking if the register is available. 
+		if (regstatus1[inst1[currentInst_ISSUE - 1].rs].Qi == regEmpty) {
+			resstation1[rstno].Vj = reg1[inst1[currentInst_ISSUE - 1].rs];
+			resstation1[rstno].Qj = OperandAvailable;
+		}
+		else {
+			resstation1[rstno].Qj = regstatus1[inst1[currentInst_ISSUE - 1].rs].Qi;
+		}
+	}
+	// for ALU Logic like FADD.D,FSUB.D,...
+	if (resstation1[rstno].a == 999)
+	{
+		if (regstatus1[inst1[currentInst_ISSUE - 1].rs].Qi == regEmpty) {
+			resstation1[rstno].Vj = reg1[inst1[currentInst_ISSUE - 1].rs];
+			resstation1[rstno].Qj = OperandAvailable;
+		}
+		else {
+			resstation1[rstno].Qj = regstatus1[inst1[currentInst_ISSUE - 1].rs].Qi;
+		}
+		// if operand rt is available -> set value of
+		// operand (Vk) to given register value
+		// else point operand to the reservation station
+		// (Qk) that will give the operand value
+		if (regstatus1[inst1[currentInst_ISSUE - 1].rt].Qi == regEmpty) {
+			resstation1[rstno].Vk = reg1[inst1[currentInst_ISSUE - 1].rt];
+			resstation1[rstno].Qk = OperandAvailable;
+		}
+		else {
+			resstation1[rstno].Qk = regstatus1[inst1[currentInst_ISSUE - 1].rt].Qi;
+		}
 
+
+
+
+	}
+
+	//for store logic - fix
+	if (resstation1[rstno].a == 1) 
+	{
+		// check if rd is empty, if it's empty then we know rd value is available else point to the reservation station which returns rd value
+		if (regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi == regEmpty) {
+			resstation1[rstno].Vj = reg1[inst1[currentInst_ISSUE - 1].rd];
+			resstation1[rstno].Qj = OperandAvailable;
+		}
+		else {
+			resstation1[rstno].Qj = regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi;
 		}
 	}
 
-	// For Load Instruction
+	// given reservation station is now busy
+	// until write back stage is completed.
+	resstation1[rstno].busy = true;
+	resstation1[rstno].ISSUE_Lat = 0;
+	// set clock cycle for issue time
+	inst1[currentInst_ISSUE - 1].issueClock = Clock;
+	// The register status Qi is set to the current
+	// instructions reservation station location r
+	regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi = rstno;
+
+
+
+
+	// For Load Instruction - Ignore this code snippet
 	/*if (resstation1[rstno].a == 0)
 	{
 		//Handle ld instuction
@@ -359,7 +363,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 			if (resstation1[i].ISSUE_Lat >= ISSUE_Lat)//check if issue latency is equal to 1 else wait for 1 cc
 			{
 
-				if (resstation1[i].Qj == OperandAvailable && resstation1[i].Qk == OperandAvailable)// check for operandavailable flag in Qj & Qk
+				if ((resstation1[i].Qj == OperandAvailable && resstation1[i].Qk == OperandAvailable) || (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 0) || (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 1))// check for operandavailable flag in Qj & Qk and QJ and a value for load and stores
 				{
 					if (inst1[resstation1[i].instNum].executeClockBegin == 0)// check if the executeclockbegin is having default value. Use instNum variable find the instruction number
 					{
@@ -436,7 +440,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 					}
 
-					if (temp_operation == 4)// means ld/sd OR fld/sd Operation
+					if (temp_operation == 4)// means ld/fld
 					{
 						if (resstation1[i].lat == FPALU)
 						{
@@ -455,7 +459,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 					}
 
-					if (temp_operation == 5)// means ld/sd OR fld/sd Operation
+					if (temp_operation == 5)// means sd/fsd
 					{
 						if (resstation1[i].lat == FPALU)
 						{
@@ -498,7 +502,7 @@ void writeback(vector<Instruction>& inst1, vector<reservationStation>& resstatio
 
 				}
 
-				// Check if any registers (via the registerStatus) are waiting for current r result
+				// Check if any registers (via the registerStatus) are waiting for current i result
 				for (int k = 0; k < reg1.size(); k++) {
 					// if RegisterStatus points to the givenreservation station r set that register[x] equal to executed result
 					if (regstatus1[k].Qi == i) {
@@ -830,4 +834,4 @@ int main()
 
 
 //TODO:-
-// Clock cycles for load and store Instruction are not working properly. Still need to fix that. Also should add code to handle branching instructions
+// Clock cycles for load and store Instruction are working properly. Need to add support for ADDI,SUBI,ADD,SUB. Also should add code to handle branching instructions
