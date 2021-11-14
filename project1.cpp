@@ -1443,5 +1443,5 @@ std::cout << endl;
 
 
 //TODO:-
-Branching code is implemented but need to pipeline the execute and writeback stage properly.
+//Branching code is implemented but need to pipeline the execute and writeback stage properly.
 // check execute and writeback clock to support pipelining.ADD BEZ Instruction logic
