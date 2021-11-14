@@ -19,6 +19,7 @@ struct latencies { //declaring struct outside to use vectors - g++ compiler erro
 class Instruction
 {
 public:
+//	string fullOp;
 	int rd;
 	int rs;
 	int rt;
@@ -30,6 +31,7 @@ public:
 
 	Instruction()
 	{
+//		fullOp="";
 		rd = 0;
 		rs = 0;
 		rt = 0;
@@ -143,6 +145,7 @@ int ipos = 0; // used for adding next iteration instruction into instruction set
 bool loopclock = false;
 
 int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, vector<registerStatus>& regstatus1, vector<int>& reg1, map<string, int> OPERATION) {
+
 	// Latency of 1 if issued
 	//**** check if spot in given reservation station is available
 	int r = 0;
@@ -221,6 +224,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	}
 	if (r == 4)//for load
 	{
+		cout<<"in issue load"<<endl;
 		for (int i = 12; i < ldsdresst; i++) {
 			if (!resstation1[i].busy) {
 				rstno = i;
@@ -236,6 +240,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	}
 	if (r == 5)//for store
 	{
+		cout<<"in issue store"<<endl;
 		for (int i = 12; i < ldsdresst; i++) {
 			if (!resstation1[i].busy) {
 				rstno = i;
@@ -365,6 +370,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	// NOTE: since currentInst was in incremented we must
 	// do currentINST_ISSUE-1
 
+
 			//check if rs register value is default. If it is empty it means that the rs value is available
 			// if operand rs is available -> set value of
 			// operand (Vj) to given register value
@@ -461,6 +467,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 			resstation1[rstno].Vk = it->second;//store the loop begining line to vk.
 			
 		}
+		cout<<"at end of that loop, and issue lat is: "<<resstation1[rstno].ISSUE_Lat<<endl;
 	}
 
 
@@ -592,7 +599,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 
 					if (temp_operation == 4)// means fld
 					{
-						if (resstation1[i].lat == FPALU)
+						if (resstation1[i].lat == FPLD)
 						{
 
 							resstation1[i].result = resstation1[i].Vj;
@@ -1087,12 +1094,14 @@ void printclockcycletable(vector<Instruction> INST, vector<string> STRING_INST) 
 	std::cout << endl;
 	// Define Row Labels and values
 	for (int i = 0; i < INST.size(); i++) {
-		std::cout << left << setw(width) << setfill(separator) << STRING_INST[i];
+
+    std::cout << left << setw(width) << setfill(separator) << STRING_INST[i];
 		std::cout << left << setw(width) << setfill(separator) << INST[i].issueClock;
 		std::cout << INST[i].executeClockBegin << "-";
 		std::cout << left << setw(width) << setfill(separator) << INST[i].executeClockEnd;
 		std::cout << left << setw(width) << setfill(separator) << INST[i].writebackClock;
 		std::cout << endl;
+
 	}
 
 }
@@ -1109,9 +1118,13 @@ void printRegisters(vector<int> RegistersVector) {
 int main()
 {
 	int i, j;
-	std::cout << "File path for Latencies file: ";
-	string projectLatencies = "Latencies.txt";
-	std::cout << "File path is" << projectLatencies << endl;
+
+
+	cout << "File path for Latencies file: ";
+	//string projectLatencies = "Latencies.txt"; //shortcut for not entering input manually
+	string projectLatencies;
+	cin >> projectLatencies;
+	cout << "File path is" << projectLatencies << endl;
 
 	vector<latencies> l; //vector named l for latencies struct
 	vector<Instruction> inst;//Vector for Instruction class
@@ -1174,6 +1187,7 @@ int main()
 	std::cout << INT << endl;
 	ifstream isFile("instruction.txt");
 
+
 	map<string, int> operation = {
 		 {"FADD.D", 0},
 		 {"FSUB.D", 1},
@@ -1190,6 +1204,7 @@ int main()
 		 {"F4", 4},
 		 {"F5", 5},
 		 {"F6", 6},
+		 {"F7", 7},
 		 {"F7", 7},
 		 {"F8", 8},
 		 {"F9", 9},
@@ -1366,10 +1381,12 @@ int main()
 		}
 		std::cout << inst.size() << "   ";
 		// Print to check Inst vector is properly initialized
-		/*for (auto it1 : inst)
+
+/*for (auto it1 : inst)
 		{
 			std::cout << it1.opcode << " ";
 		}*/
+
 	}
 
 	//unroll loop to avoid complexity
@@ -1416,9 +1433,11 @@ int main()
 		Done = false;
 		if (Total_WRITEBACKS == inst.size())
 			Done = true;
-		std::cout << endl;
+
+std::cout << endl;
 	} while (!Done);
 	
+
 	return 0;
 }
 
