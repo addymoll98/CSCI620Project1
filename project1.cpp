@@ -344,13 +344,29 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 		if (!rstationFree)
 			return 1;
 	}
-	if (r == 50)// for BNEQZ Operation
+	if (r == 50)// for BNEZ Operation
+	{
+		std::cout << "Inside bnez";
+		for (int i = 16; i < branchresst; i++) {
+			if (!resstation1[i].busy) {
+				rstno = i;
+				resstation1[i].op = 50;
+				rstationFree = true;
+				currentInst_ISSUE++;
+				resstation1[i].a = 3; // value is 3 for branch instruction
+				break;
+			}
+		}
+		if (!rstationFree)
+			return 1;
+	}
+	if (r == 51)// for BEQZ Operation
 	{
 		std::cout << "Inside beqz";
 		for (int i = 16; i < branchresst; i++) {
 			if (!resstation1[i].busy) {
 				rstno = i;
-				resstation1[i].op = 50;
+				resstation1[i].op = 51;
 				rstationFree = true;
 				currentInst_ISSUE++;
 				resstation1[i].a = 3; // value is 3 for branch instruction
@@ -443,7 +459,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 		resstation1[rstno].Vk = inst1[currentInst_ISSUE - 1].rt; // store the rt value in Vk 
 	}
 
-	//for BNEZ logic
+	//for BNEZ, BEZ logic
 	if (resstation1[rstno].a == 3)
 	{
 		//set loop clock to avoid redundant cc
@@ -469,6 +485,8 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 		}
 		cout<<"at end of that loop, and issue lat is: "<<resstation1[rstno].ISSUE_Lat<<endl;
 	}
+	
+
 
 
 	// given reservation station is now busy
@@ -888,6 +906,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 								resstation1[i].Vj = resstation1[i].Vj - resstation1[i].Vk;
 								resstation1[i].result = resstation1[i].Vj;
 							}
+							std::cout<<"Calculation for subtraction "<< resstation1[i].Vj << " - " <<resstation1[i].Vk <<"= " <<resstation1[i].result;
 							//we can now complete the execution and update the resultReady flag
 							resstation1[i].resultReady = true;
 							//reset the latency property
@@ -939,6 +958,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 					if (temp_operation == 50)// means BNEZ
 					{
+						std::cout<<"issuing a BNEZ"<<endl;
 						if (resstation1[i].lat - 1 == INT)
 						{
 							
@@ -987,6 +1007,59 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 						}
 
+
+					}
+					
+					if (temp_operation == 51)// means BEZ
+					{
+						std::cout<<"issuing a BEZ"<<endl;
+						if (resstation1[i].lat - 1 == INT)
+						{
+							
+							//add next iteration instructions to instruction set using loopstartline and loopendline
+							std::cout << "reservationstation. vj & vk bez =====" << resstation1[i].Vj<<"  "<< resstation1[i].Vk<<endl;
+							resstation1[i].result = resstation1[i].Vj;
+							std::cout << "lst == " << lst << "led == " << led<<endl;
+							if (resstation1[i].Vj == 0) //****************THIS LINE IS THE CHANGE FROM BNEZ
+							{
+								for (int k = lst; k <= led; k++)
+								{
+
+									Instruction I(inst1[k].rd, inst1[k].rs, inst1[k].rt, inst1[k].opcode);//(rd,rs,rt,operation)
+									std::cout << "instruction" << STRING_INST1[k];
+									//std::cout << "inst1.begin()" << inst1.begin();
+									std::cout << "error before";
+									inst1.insert(inst1.begin()+led+1+ipos,I);
+									std::cout << "error after";
+									STRING_INST1.insert(STRING_INST1.begin() +led+1+ipos,STRING_INST1[k]);
+									ipos++;//incremented to add loop instruction in the proper order
+								}
+
+							}
+							if (resstation1[i].Vj != 0)//during final iteration add the instructions outside loop body. ******THIS IS THE LINE CHNAGE FROM BNEZ
+							{
+								//add instructions after loop
+								for (int m = 0; m < INST_AFTERLOOP.size(); m++)
+								{
+									inst1.push_back(INST_AFTERLOOP[m]);
+								}
+							}
+
+							// set nextinstuctionafter branch to true. used to stall the next instruction of branch till branch instruction is executed.
+							nextinstructionafterbranch = true;
+							//we can now complete the execution and update the resultReady flag
+							resstation1[i].resultReady = true;
+							//reset the latency property
+							resstation1[i].lat = 0;
+							resstation1[i].ISSUE_Lat = 0;
+							//set the Executeclock end
+							inst1[resstation1[i].instNum].executeClockEnd = Clock;
+							std::cout << "Current Instruction" << currentInst_ISSUE;
+							Clock = Clock - 2;//temporary fix for issue iteration of branch instruction clock cycle
+							loopclock = false; // set the loop clock to display the correct clock again
+							
+
+						}
 
 					}
 				}
@@ -1252,8 +1325,9 @@ int main()
 		LDSD2(4, OperandInit, 999),
 		LDSD3(4, OperandInit, 999),
 		LDSD4(4, OperandInit, 999);
-	reservationStation BRANCH1(51, OperandInit, 999),
-		 BRANCH2(51, OperandInit, 999);
+	reservationStation 
+		BRANCH1(51, OperandInit, 999),
+		BRANCH2(51, OperandInit, 999);
 
 	vector<reservationStation> resStation = { ADD1,ADD2,ADD3,ADD4,MULT1,MULT2,MULT3,MULT4,DIV1,DIV2,DIV3,DIV4,LDSD1,LDSD2,LDSD3,LDSD4,BRANCH1,BRANCH2};
 
@@ -1393,9 +1467,26 @@ int main()
 	vector<Instruction> inst_afterloop;
 	for (int k = 0; k < inst.size(); k++)
 	{
+		//BNEZ version
 		if (inst[k].opcode == 50)
 		{
 			std::cout << "Inside bnez"<<k<<endl;
+			//add instructions after loop
+			for (int m = k+1; m < inst.size(); m++)
+			{
+				inst_afterloop.push_back(inst[m]);
+			}
+			//delete the instructions after loop
+			for (int m = k + 1; m < inst.size(); m++)
+			{
+				inst.erase(inst.begin()+m);
+			}
+			break;//break to avoid redundant iteration
+		}
+		//BEZ version
+		if (inst[k].opcode == 51)
+		{
+			std::cout << "Inside bez"<<k<<endl;
 			//add instructions after loop
 			for (int m = k+1; m < inst.size(); m++)
 			{
@@ -1425,7 +1516,7 @@ int main()
 		if(!loopclock)
 			printclockcycletable(inst,string_inst);
 		//std::cout << "inst" << inst.size();
-		//std::cout << "Total Writebacks" << Total_WRITEBACKS;
+		std::cout << "Total Writebacks" << Total_WRITEBACKS;
 		//std::cout << "Total Writebacks" << Total_WRITEBACKS;
 
 		// Check if all reservation stations are empty -> program done
