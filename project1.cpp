@@ -19,6 +19,7 @@ struct latencies { //declaring struct outside to use vectors - g++ compiler erro
 class Instruction
 {
 public:
+//	string fullOp;
 	int rd;
 	int rs;
 	int rt;
@@ -30,6 +31,7 @@ public:
 
 	Instruction()
 	{
+//		fullOp="";
 		rd = 0;
 		rs = 0;
 		rt = 0;
@@ -140,6 +142,7 @@ const int OperandAvailable = 1001;
 const int OperandInit = 1002;
 
 
+//currently, this doesn't work if we actually do run out of reservation stations
 int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, vector<registerStatus>& regstatus1, vector<int>& reg1) {
 	// Latency of 1 if issued
 	//**** check if spot in given reservation station is available
@@ -218,6 +221,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	}
 	if (r == 4)//for load
 	{
+		cout<<"in issue load"<<endl;
 		for (int i = 12; i < ldsdresst; i++) {
 			if (!resstation1[i].busy) {
 				rstno = i;
@@ -233,6 +237,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	}
 	if (r == 5)//for store
 	{
+		cout<<"in issue store"<<endl;
 		for (int i = 12; i < ldsdresst; i++) {
 			if (!resstation1[i].busy) {
 				rstno = i;
@@ -257,6 +262,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	// do currentINST_ISSUE-1
 	if (resstation1[rstno].a == 999 || resstation1[rstno].a == 1 || resstation1[rstno].a == 0)
 	{
+		cout<<"in the if 999, 1, 0 loop"<<endl;
 		// For store data
 		if (resstation1[rstno].a == 11) // Ignore the if the part. Trying to work something out for load and store logic. Focus on the else part
 		{
@@ -321,6 +327,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 			regstatus1[inst1[currentInst_ISSUE - 1].rd].Qi = rstno;
 
 		}
+		cout<<"at end of that loop, and issue lat is: "<<resstation1[rstno].ISSUE_Lat<<endl;
 	}
 
 	// For Load Instruction
@@ -438,7 +445,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 					if (temp_operation == 4)// means ld/sd OR fld/sd Operation
 					{
-						if (resstation1[i].lat == FPALU)
+						if (resstation1[i].lat == FPLD)
 						{
 
 							resstation1[i].result = resstation1[i].Vj;
@@ -568,7 +575,8 @@ void printclockcycletable(vector<Instruction> INST) {
 	cout << endl;
 	// Define Row Labels and values
 	for (int i = 0; i < INST.size(); i++) {
-		cout << left << setw(width) << setfill(separator) << i;
+		cout << left << setw(width) << setfill(separator) << INST[i].opcode;
+		//cout << left << setw(width) << setfill(separator) << i;
 		cout << left << setw(width) << setfill(separator) << INST[i].issueClock;
 		cout << INST[i].executeClockBegin << "-";
 		cout << left << setw(width) << setfill(separator) << INST[i].executeClockEnd;
@@ -584,7 +592,9 @@ int main()
 {
 	int i, j;
 	cout << "File path for Latencies file: ";
-	string projectLatencies = "Latencies.txt";
+	//string projectLatencies = "Latencies.txt"; //shortcut for not entering input manually
+	string projectLatencies;
+	cin >> projectLatencies;
 	cout << "File path is" << projectLatencies << endl;
 
 	vector<latencies> l; //vector named l for latencies struct
@@ -645,7 +655,12 @@ int main()
 	cout << FPALU << endl;
 	cout << LDINT << endl;
 	cout << INT << endl;
-	ifstream isFile("instruction.txt");
+	
+	cout<< "Enter Instruction file location: ";
+	string instructionFile;
+	cin>> instructionFile;
+	ifstream isFile(instructionFile);
+	//ifstream isFile("instruction.txt"); //shortcut for bypassing manual input
 
 	map<string, int> operation = {
 		 {"FADD.D", 0},
@@ -661,6 +676,7 @@ int main()
 		 {"F4", 4},
 		 {"F5", 5},
 		 {"F6", 6},
+		 {"F7", 7},
 		 {"F7", 7},
 		 {"F8", 8},
 		 {"F9", 9},
@@ -795,10 +811,10 @@ int main()
 		}
 		cout << inst.size() << "   ";
 		// Print to check Inst vector is properly initialized
-		/*for (auto it1 : inst)
-		{
-			cout << it1.opcode << " ";
-		}*/
+		// for (auto it1 : inst)
+		// {
+			// cout << it1.opcode << " ";
+		// }
 	}
 
 	//cout << "Instruction Size"<<inst.size();
@@ -823,7 +839,7 @@ int main()
 		if (Total_WRITEBACKS == inst.size())
 			Done = true;
 		cout << endl;
-	} while (!Done);
+	} while (!Done); 
 
 	return 0;
 }
