@@ -736,7 +736,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 }*/
 
 //execute with loop
-void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1, vector<registerStatus>& regstatus1, vector<int>& reg1, int FPMUL, int FPDIV, int FPADD, int FPLD, int FPALU, int LDINT, int INT,int lst, int led, vector<string>& STRING_INST1, vector<Instruction> INST_AFTERLOOP, vector<int> FUstatus)
+void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1, vector<registerStatus>& regstatus1, vector<int>& reg1, int FPMUL, int FPDIV, int FPADD, int FPLD, int FPALU, int LDINT, int INT,int lst, int led, vector<string>& STRING_INST1, vector<Instruction> INST_AFTERLOOP, vector<int>& FUstatus)
 {
 
 
@@ -767,16 +767,16 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 						if (inst1[resstation1[i].instNum].executeClockBegin == 0)// check if the executeclockbegin is having default value. Use instNum variable find the instruction number
 						{
 							inst1[resstation1[i].instNum].executeClockBegin = Clock;// if it is issue the current clock value as execution start cycle
-							if(resstation1[i].op==0 || resstation1[i].op==1)
-								FUstatus[0]=Clock;
-							if(resstation1[i].op==2)
-								FUstatus[1]=Clock;
-							if(resstation1[i].op==3)
-								FUstatus[2]=Clock;
-							if((resstation1[i].op==4 || resstation1[i].op==5)&&FUstatus[3]==-1)
-								FUstatus[3]=Clock;
-							if(resstation1[i].op==6 || resstation1[i].op==7|| resstation1[i].op==8|| resstation1[i].op==9|| resstation1[i].op==10|| resstation1[i].op==11)
-								FUstatus[4]=Clock;
+							if(resstation1[i].op==0 || resstation1[i].op==1) //if FADD or FSUB
+								FUstatus[0]=Clock+FPADD; //Adder functional unit is 4 cc
+							if(resstation1[i].op==2) //FMUL
+								FUstatus[1]=Clock+FPMUL; //FMUL.D functional unit is 7 cc
+							if(resstation1[i].op==3) //FDIV
+								FUstatus[2]=Clock+FPDIV; //Divider fuctional unit is 24 cc
+							if((resstation1[i].op==4 || resstation1[i].op==5)&&FUstatus[3]==-1) //FLD/FSD
+								FUstatus[3]=Clock+FPLD; 
+							if(resstation1[i].op==6 || resstation1[i].op==7|| resstation1[i].op==8|| resstation1[i].op==9|| resstation1[i].op==10|| resstation1[i].op==11) //int functional unit
+								FUstatus[4]=Clock+INT; //int functional unit is 1 cc
 						}
 						resstation1[i].lat++;// Increment the latency to match the latency of FMUL,FADD,FSUB etc. If latency matches means that we can perform the execution
 						int temp_operation = resstation1[i].op; // store operation type
@@ -784,8 +784,6 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 						{
 							if (resstation1[i].lat == FPADD)
 							{
-								//set functional unit to not busy
-								FUstatus[0]=-1;
 								//perform addition
 								resstation1[i].result = resstation1[i].Vj + resstation1[i].Vk;
 								//we can now complete the execution and update the resultReady flag
@@ -803,8 +801,6 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 						{
 							if (resstation1[i].lat == FPADD)
 							{
-								//set functional unit to clock cycle
-								FUstatus[0]=-1;
 								//perform subtraction
 								resstation1[i].result = resstation1[i].Vj - resstation1[i].Vk;
 								//we can now complete the execution and update the resultReady flag
@@ -822,8 +818,6 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 						{
 							if (resstation1[i].lat == FPMUL)
 							{
-								//set functional unit to clock cycle
-								FUstatus[1]=-1;
 								//perform multiplication
 								resstation1[i].result = resstation1[i].Vj * resstation1[i].Vk;
 								//we can now complete the execution and update the resultReady flag
@@ -841,8 +835,6 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 						{
 							if (resstation1[i].lat == FPDIV)
 							{
-								//set functional unit to clock cycle
-								FUstatus[2]=-1;
 								//perfrom division
 								resstation1[i].result = resstation1[i].Vj / resstation1[i].Vk;
 								//we can now complete the execution and update the resultReady flag
@@ -861,8 +853,6 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 						{
 							if (resstation1[i].lat == FPALU)
 							{
-								//set functional unit to clock cycle
-								FUstatus[3]=-1;
 								resstation1[i].result = resstation1[i].Vj;
 								//we can now complete the execution and update the resultReady flag
 								resstation1[i].resultReady = true;
@@ -881,8 +871,6 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 						{
 							if (resstation1[i].lat == FPALU)
 							{
-								//set functional unit to clock cycle
-								FUstatus[3]=-1;
 								resstation1[i].result = resstation1[i].Vj;
 								//we can now complete the execution and update the resultReady flag
 								resstation1[i].resultReady = true;
@@ -900,8 +888,6 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 						{
 							if (resstation1[i].lat - 1 == INT) // by default lat will start in 1. Since value for Inetger operations is zero we do -1 to avoid infinite loop scenario.
 							{
-								//set functional unit to clock cycle
-								FUstatus[4]=-1;
 								//perform addition
 								if (temp_operation == 6)
 								{
@@ -930,8 +916,6 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 						{
 							if (resstation1[i].lat - 1 == INT) // by default lat will start in 1. Since value for Inetger operations is zero we do -1 to avoid infinite loop scenario.
 							{
-								//set functional unit to clock cycle
-								FUstatus[4]=-1;
 								//perform subtraction
 								if (temp_operation == 7)
 								{
@@ -961,8 +945,6 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 						{
 							if (resstation1[i].lat == LDINT)
 							{
-								//set functional unit to clock cycle
-								FUstatus[4]=-1;
 								resstation1[i].result = resstation1[i].Vj;
 								//we can now complete the execution and update the resultReady flag
 								resstation1[i].resultReady = true;
@@ -980,8 +962,6 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 						{
 							if (resstation1[i].lat - 1 == INT)
 							{
-								//set functional unit to clock cycle
-								FUstatus[4]=-1;
 								resstation1[i].result = resstation1[i].Vj;
 								//we can now complete the execution and update the resultReady flag
 								resstation1[i].resultReady = true;
@@ -1114,11 +1094,24 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 	}
 	//now that any possible instructions have begin execution reset all funcitonal units but divide to available if Pipelined
 	cout<<FUstatus[0]<<" "<<FUstatus[1]<<" "<<FUstatus[2]<<" "<<FUstatus[3]<<" "<<FUstatus[4]<<" "<<endl;
-	if (Pipelined==true){
+	if (Pipelined==true){ //If pipelined, reset all to available for next cc except divider
 		FUstatus[0]=-1;
 		FUstatus[1]=-1;
 		FUstatus[3]=-1;
 		FUstatus[4]=-1;
+		if (FUstatus[2]==Clock){
+			FUstatus[2]=-1;
+		}
+		cout<<"reseting the fu in pipeline true if"<<endl;
+	}
+	else { //otherwise, set to available if they ended execution this cc
+		for (int i=0; i<5; i++){
+			if (FUstatus[i]==Clock){
+				FUstatus[i]=-1;
+				cout<<"resetting fu for "<< i<<" in pipeline false if"<<endl;
+			}
+		}
+		
 	}
 }
 
@@ -1580,13 +1573,13 @@ int main()
 		issue(inst, resStation, registerStatus, registers,operation);
 		execute(inst, resStation, registerStatus, registers, FPMUL, FPDIV, FPADD, FPLD, FPALU, LDINT, INT,looplinestart,looplinened,string_inst,inst_afterloop,FUstatus);
 		writeback(inst, resStation, registerStatus, registers);
-
+		
 		//print cc table
 		//printRegisters(registers);
 		if(!loopclock)
 			printclockcycletable(inst,string_inst);
 		//std::cout << "inst" << inst.size();
-		std::cout << "Total Writebacks" << Total_WRITEBACKS;
+		//std::cout << "Total Writebacks" << Total_WRITEBACKS;
 		//std::cout << "Total Writebacks" << Total_WRITEBACKS;
 
 		// Check if all reservation stations are empty -> program done
