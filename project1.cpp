@@ -131,6 +131,7 @@ const int WRITEBACK_Lat = 1;
 int Clock = 0;
 // used to check if INST == WRITEBACKS to end program
 bool Done = true;
+bool Pipelined=true;
 int Total_WRITEBACKS = 0;
 // Counter for instructions; Used to end issue if value is equal to length of instructions
 int currentInst_ISSUE = 0;
@@ -735,13 +736,12 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 }*/
 
 //execute with loop
-void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1, vector<registerStatus>& regstatus1, vector<int>& reg1, int FPMUL, int FPDIV, int FPADD, int FPLD, int FPALU, int LDINT, int INT,int lst, int led, vector<string>& STRING_INST1, vector<Instruction> INST_AFTERLOOP)
+void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1, vector<registerStatus>& regstatus1, vector<int>& reg1, int FPMUL, int FPDIV, int FPADD, int FPLD, int FPALU, int LDINT, int INT,int lst, int led, vector<string>& STRING_INST1, vector<Instruction> INST_AFTERLOOP, vector<int> FUstatus)
 {
 
 
 	for (int i = 0; i < resstation1.size(); i++)
 	{
-
 		if (resstation1[i].busy == true)//check if any reservation station is busy
 		{
 			if (resstation1[i].ISSUE_Lat >= ISSUE_Lat)//check if issue latency is equal to 1 else wait for 1 cc
@@ -751,318 +751,357 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 					nextinstructionafterbranch = false;
 					break;//used for stalling instruction in the next iteration after the branch instruction
 				}
-				if ((resstation1[i].Qj == OperandAvailable && resstation1[i].Qk == OperandAvailable) || (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 0) || (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 1) || (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 2) || (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 3))// check for operandavailable flag in Qj & Qk and QJ and a value for load and stores
+				if ((resstation1[i].Qj == OperandAvailable && resstation1[i].Qk == OperandAvailable) 
+					// check for operandavailable flag in Qj & Qk and QJ and a value for load and stores
+					|| (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 0) 
+					|| (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 1) 
+					|| (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 2) 
+					|| (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 3))
 				{
-					if (inst1[resstation1[i].instNum].executeClockBegin == 0)// check if the executeclockbegin is having default value. Use instNum variable find the instruction number
+					if (((resstation1[i].op==0 || resstation1[i].op==1)&& FUstatus[0]==-1) //check if functional unit is available
+						|| ((resstation1[i].op==2)&&FUstatus[1]==-1)
+						|| ((resstation1[i].op==3)&&FUstatus[2]==-1)
+						|| ((resstation1[i].op==4 || resstation1[i].op==5)&&FUstatus[3]==-1)
+						||((resstation1[i].op==6 || resstation1[i].op==7|| resstation1[i].op==8|| resstation1[i].op==9|| resstation1[i].op==10|| resstation1[i].op==11)&&FUstatus[4]==-1))
 					{
-						inst1[resstation1[i].instNum].executeClockBegin = Clock;// if it is issue the current clock value as execution start cycle
-					}
-					resstation1[i].lat++;// Increment the latency to match the latency of FMUL,FADD,FSUB etc. If latency matches means that we can perform the execution
-					int temp_operation = resstation1[i].op; // store operation type
-					if (temp_operation == 0)// means FADD Operation
-					{
-						if (resstation1[i].lat == FPADD)
+						if (inst1[resstation1[i].instNum].executeClockBegin == 0)// check if the executeclockbegin is having default value. Use instNum variable find the instruction number
 						{
-							//perform addition
-							resstation1[i].result = resstation1[i].Vj + resstation1[i].Vk;
-							//we can now complete the execution and update the resultReady flag
-							resstation1[i].resultReady = true;
-							//reset the latency property
-							resstation1[i].lat = 0;
-							resstation1[i].ISSUE_Lat = 0;
-							//set the Executeclock end
-							inst1[resstation1[i].instNum].executeClockEnd = Clock;
+							inst1[resstation1[i].instNum].executeClockBegin = Clock;// if it is issue the current clock value as execution start cycle
+							if(resstation1[i].op==0 || resstation1[i].op==1)
+								FUstatus[0]=Clock;
+							if(resstation1[i].op==2)
+								FUstatus[1]=Clock;
+							if(resstation1[i].op==3)
+								FUstatus[2]=Clock;
+							if((resstation1[i].op==4 || resstation1[i].op==5)&&FUstatus[3]==-1)
+								FUstatus[3]=Clock;
+							if(resstation1[i].op==6 || resstation1[i].op==7|| resstation1[i].op==8|| resstation1[i].op==9|| resstation1[i].op==10|| resstation1[i].op==11)
+								FUstatus[4]=Clock;
 						}
-
-
-					}
-					if (temp_operation == 1)// means FSUB Operation
-					{
-						if (resstation1[i].lat == FPADD)
+						resstation1[i].lat++;// Increment the latency to match the latency of FMUL,FADD,FSUB etc. If latency matches means that we can perform the execution
+						int temp_operation = resstation1[i].op; // store operation type
+						if (temp_operation == 0)// means FADD Operation
 						{
-							//perform subtraction
-							resstation1[i].result = resstation1[i].Vj - resstation1[i].Vk;
-							//we can now complete the execution and update the resultReady flag
-							resstation1[i].resultReady = true;
-							//reset the latency property
-							resstation1[i].lat = 0;
-							resstation1[i].ISSUE_Lat = 0;
-							//set the Executeclock end
-							inst1[resstation1[i].instNum].executeClockEnd = Clock;
-						}
-
-
-					}
-					if (temp_operation == 2)// means FMUL Operation
-					{
-						if (resstation1[i].lat == FPMUL)
-						{
-							//perform multiplication
-							resstation1[i].result = resstation1[i].Vj * resstation1[i].Vk;
-							//we can now complete the execution and update the resultReady flag
-							resstation1[i].resultReady = true;
-							//reset the latency property
-							resstation1[i].lat = 0;
-							resstation1[i].ISSUE_Lat = 0;
-							//set the Executeclock end
-							inst1[resstation1[i].instNum].executeClockEnd = Clock;
-						}
-
-
-					}
-					if (temp_operation == 3)// means FDIV Operation
-					{
-						if (resstation1[i].lat == FPDIV)
-						{
-							//perfrom division
-							resstation1[i].result = resstation1[i].Vj / resstation1[i].Vk;
-							//we can now complete the execution and update the resultReady flag
-							resstation1[i].resultReady = true;
-							//reset the latency property
-							resstation1[i].lat = 0;
-							resstation1[i].ISSUE_Lat = 0;
-							//set the Executeclock end
-							inst1[resstation1[i].instNum].executeClockEnd = Clock;
-						}
-
-
-					}
-
-					if (temp_operation == 4)// means fld
-					{
-						if (resstation1[i].lat == FPALU)
-						{
-
-							resstation1[i].result = resstation1[i].Vj;
-							//we can now complete the execution and update the resultReady flag
-							resstation1[i].resultReady = true;
-							//reset the latency property
-							resstation1[i].lat = 0;
-							resstation1[i].ISSUE_Lat = 0;
-							//set the Executeclock end
-							inst1[resstation1[i].instNum].executeClockEnd = Clock;
-
-						}
-
-
-					}
-
-					if (temp_operation == 5)// means fsd
-					{
-						if (resstation1[i].lat == FPALU)
-						{
-							resstation1[i].result = resstation1[i].Vj;
-							//we can now complete the execution and update the resultReady flag
-							resstation1[i].resultReady = true;
-							//reset the latency property
-							resstation1[i].lat = 0;
-							resstation1[i].ISSUE_Lat = 0;
-							//set the Executeclock end
-							inst1[resstation1[i].instNum].executeClockEnd = Clock;
-
-						}
-
-
-					}
-					if (temp_operation == 6 || temp_operation == 8)// means ADD,ADDI Operation
-					{
-						if (resstation1[i].lat - 1 == INT) // by default lat will start in 1. Since value for Inetger operations is zero we do -1 to avoid infinite loop scenario.
-						{
-							//perform addition
-							if (temp_operation == 6)
+							if (resstation1[i].lat == FPADD)
 							{
+								//set functional unit to not busy
+								FUstatus[0]=-1;
+								//perform addition
 								resstation1[i].result = resstation1[i].Vj + resstation1[i].Vk;
-							}
-							//perform addition increment
-							if (temp_operation == 8)
-							{
-								//resstation1[i].Vj = resstation1[i].Vj + resstation1[i].Vk;
-								//resstation1[i].result = resstation1[i].Vj;
-								resstation1[i].result = resstation1[i].Vj + resstation1[i].Vk;
+								//we can now complete the execution and update the resultReady flag
+								resstation1[i].resultReady = true;
+								//reset the latency property
+								resstation1[i].lat = 0;
+								resstation1[i].ISSUE_Lat = 0;
+								//set the Executeclock end
+								inst1[resstation1[i].instNum].executeClockEnd = Clock;
 							}
 
-							//we can now complete the execution and update the resultReady flag
-							resstation1[i].resultReady = true;
-							//reset the latency property
-							resstation1[i].lat = 0;
-							resstation1[i].ISSUE_Lat = 0;
-							//set the Executeclock end
-							inst1[resstation1[i].instNum].executeClockEnd = Clock;
+
 						}
-
-
-					}
-					if (temp_operation == 7 || temp_operation == 9)// means SUB,SUBI Operation
-					{
-						if (resstation1[i].lat - 1 == INT) // by default lat will start in 1. Since value for Inetger operations is zero we do -1 to avoid infinite loop scenario.
+						if (temp_operation == 1)// means FSUB Operation
 						{
-							//perform subtraction
-							if (temp_operation == 7)
+							if (resstation1[i].lat == FPADD)
 							{
+								//set functional unit to clock cycle
+								FUstatus[0]=-1;
+								//perform subtraction
 								resstation1[i].result = resstation1[i].Vj - resstation1[i].Vk;
+								//we can now complete the execution and update the resultReady flag
+								resstation1[i].resultReady = true;
+								//reset the latency property
+								resstation1[i].lat = 0;
+								resstation1[i].ISSUE_Lat = 0;
+								//set the Executeclock end
+								inst1[resstation1[i].instNum].executeClockEnd = Clock;
 							}
-							//perform decrement
-							if (temp_operation == 9)
+
+
+						}
+						if (temp_operation == 2)// means FMUL Operation
+						{
+							if (resstation1[i].lat == FPMUL)
 							{
-								//resstation1[i].Vj = resstation1[i].Vj - resstation1[i].Vk;
-								//resstation1[i].result = resstation1[i].Vj;
-								resstation1[i].result = resstation1[i].Vj - resstation1[i].Vk;
+								//set functional unit to clock cycle
+								FUstatus[1]=-1;
+								//perform multiplication
+								resstation1[i].result = resstation1[i].Vj * resstation1[i].Vk;
+								//we can now complete the execution and update the resultReady flag
+								resstation1[i].resultReady = true;
+								//reset the latency property
+								resstation1[i].lat = 0;
+								resstation1[i].ISSUE_Lat = 0;
+								//set the Executeclock end
+								inst1[resstation1[i].instNum].executeClockEnd = Clock;
 							}
-							std::cout<<"Calculation for subtraction "<< resstation1[i].Vj << " - " <<resstation1[i].Vk <<"= " <<resstation1[i].result;
-							//we can now complete the execution and update the resultReady flag
-							resstation1[i].resultReady = true;
-							//reset the latency property
-							resstation1[i].lat = 0;
-							resstation1[i].ISSUE_Lat = 0;
-							//set the Executeclock end
-							inst1[resstation1[i].instNum].executeClockEnd = Clock;
-						}
 
-
-					}
-
-					if (temp_operation == 10)// means LD
-					{
-						if (resstation1[i].lat == LDINT)
-						{
-
-							resstation1[i].result = resstation1[i].Vj;
-							//we can now complete the execution and update the resultReady flag
-							resstation1[i].resultReady = true;
-							//reset the latency property
-							resstation1[i].lat = 0;
-							resstation1[i].ISSUE_Lat = 0;
-							//set the Executeclock end
-							inst1[resstation1[i].instNum].executeClockEnd = Clock;
 
 						}
-
-
-					}
-					if (temp_operation == 11)// means SD
-					{
-						if (resstation1[i].lat - 1 == INT)
+						if (temp_operation == 3)// means FDIV Operation
 						{
-
-							resstation1[i].result = resstation1[i].Vj;
-							//we can now complete the execution and update the resultReady flag
-							resstation1[i].resultReady = true;
-							//reset the latency property
-							resstation1[i].lat = 0;
-							resstation1[i].ISSUE_Lat = 0;
-							//set the Executeclock end
-							inst1[resstation1[i].instNum].executeClockEnd = Clock;
-
-						}
-
-
-					}
-
-					if (temp_operation == 50)// means BNEZ
-					{
-						std::cout<<"issuing a BNEZ"<<endl;
-						if (resstation1[i].lat - 1 == INT)
-						{
-							
-							//add next iteration instructions to instruction set using loopstartline and loopendline
-							std::cout << "reservationstation. vj & vk bnez =====" << resstation1[i].Vj<<"  "<< resstation1[i].Vk<<endl;
-							resstation1[i].result = resstation1[i].Vj;
-							std::cout << "lst == " << lst << "led == " << led<<endl;
-							if (resstation1[i].Vj != 0)
+							if (resstation1[i].lat == FPDIV)
 							{
-								for (int k = lst; k <= led; k++)
+								//set functional unit to clock cycle
+								FUstatus[2]=-1;
+								//perfrom division
+								resstation1[i].result = resstation1[i].Vj / resstation1[i].Vk;
+								//we can now complete the execution and update the resultReady flag
+								resstation1[i].resultReady = true;
+								//reset the latency property
+								resstation1[i].lat = 0;
+								resstation1[i].ISSUE_Lat = 0;
+								//set the Executeclock end
+								inst1[resstation1[i].instNum].executeClockEnd = Clock;
+							}
+
+
+						}
+
+						if (temp_operation == 4)// means fld
+						{
+							if (resstation1[i].lat == FPALU)
+							{
+								//set functional unit to clock cycle
+								FUstatus[3]=-1;
+								resstation1[i].result = resstation1[i].Vj;
+								//we can now complete the execution and update the resultReady flag
+								resstation1[i].resultReady = true;
+								//reset the latency property
+								resstation1[i].lat = 0;
+								resstation1[i].ISSUE_Lat = 0;
+								//set the Executeclock end
+								inst1[resstation1[i].instNum].executeClockEnd = Clock;
+
+							}
+
+
+						}
+
+						if (temp_operation == 5)// means fsd
+						{
+							if (resstation1[i].lat == FPALU)
+							{
+								//set functional unit to clock cycle
+								FUstatus[3]=-1;
+								resstation1[i].result = resstation1[i].Vj;
+								//we can now complete the execution and update the resultReady flag
+								resstation1[i].resultReady = true;
+								//reset the latency property
+								resstation1[i].lat = 0;
+								resstation1[i].ISSUE_Lat = 0;
+								//set the Executeclock end
+								inst1[resstation1[i].instNum].executeClockEnd = Clock;
+
+							}
+
+
+						}
+						if (temp_operation == 6 || temp_operation == 8)// means ADD,ADDI Operation
+						{
+							if (resstation1[i].lat - 1 == INT) // by default lat will start in 1. Since value for Inetger operations is zero we do -1 to avoid infinite loop scenario.
+							{
+								//set functional unit to clock cycle
+								FUstatus[4]=-1;
+								//perform addition
+								if (temp_operation == 6)
 								{
-
-									Instruction I(inst1[k].rd, inst1[k].rs, inst1[k].rt, inst1[k].opcode);//(rd,rs,rt,operation)
-									std::cout << "instruction" << STRING_INST1[k];
-									//std::cout << "inst1.begin()" << inst1.begin();
-									std::cout << "error before";
-									inst1.insert(inst1.begin()+led+1+ipos,I);
-									std::cout << "error after";
-									STRING_INST1.insert(STRING_INST1.begin() +led+1+ipos,STRING_INST1[k]);
-									ipos++;//incremented to add loop instruction in the proper order
+									resstation1[i].result = resstation1[i].Vj + resstation1[i].Vk;
+								}
+								//perform addition increment
+								if (temp_operation == 8)
+								{
+									//resstation1[i].Vj = resstation1[i].Vj + resstation1[i].Vk;
+									//resstation1[i].result = resstation1[i].Vj;
+									resstation1[i].result = resstation1[i].Vj + resstation1[i].Vk;
 								}
 
-							}
-							if (resstation1[i].Vj == 0)//during final iteration add the instructions outside loop body.
-							{
-								//add instructions after loop
-								for (int m = 0; m < INST_AFTERLOOP.size(); m++)
-								{
-									inst1.push_back(INST_AFTERLOOP[m]);
-								}
+								//we can now complete the execution and update the resultReady flag
+								resstation1[i].resultReady = true;
+								//reset the latency property
+								resstation1[i].lat = 0;
+								resstation1[i].ISSUE_Lat = 0;
+								//set the Executeclock end
+								inst1[resstation1[i].instNum].executeClockEnd = Clock;
 							}
 
-							// set nextinstuctionafter branch to true. used to stall the next instruction of branch till branch instruction is executed.
-							nextinstructionafterbranch = true;
-							//we can now complete the execution and update the resultReady flag
-							resstation1[i].resultReady = true;
-							//reset the latency property
-							resstation1[i].lat = 0;
-							resstation1[i].ISSUE_Lat = 0;
-							//set the Executeclock end
-							inst1[resstation1[i].instNum].executeClockEnd = Clock;
-							std::cout << "Current Instruction" << currentInst_ISSUE;
-							Clock = Clock - 2;//temporary fix for issue iteration of branch instruction clock cycle
-							loopclock = false; // set the loop clock to display the correct clock again
-							
 
 						}
-
-
-					}
-					
-					if (temp_operation == 51)// means BEZ
-					{
-						std::cout<<"issuing a BEZ"<<endl;
-						if (resstation1[i].lat - 1 == INT)
+						if (temp_operation == 7 || temp_operation == 9)// means SUB,SUBI Operation
 						{
-							
-							//add next iteration instructions to instruction set using loopstartline and loopendline
-							std::cout << "reservationstation. vj & vk bez =====" << resstation1[i].Vj<<"  "<< resstation1[i].Vk<<endl;
-							resstation1[i].result = resstation1[i].Vj;
-							std::cout << "lst == " << lst << "led == " << led<<endl;
-							if (resstation1[i].Vj == 0) //****************THIS LINE IS THE CHANGE FROM BNEZ
+							if (resstation1[i].lat - 1 == INT) // by default lat will start in 1. Since value for Inetger operations is zero we do -1 to avoid infinite loop scenario.
 							{
-								for (int k = lst; k <= led; k++)
+								//set functional unit to clock cycle
+								FUstatus[4]=-1;
+								//perform subtraction
+								if (temp_operation == 7)
 								{
-
-									Instruction I(inst1[k].rd, inst1[k].rs, inst1[k].rt, inst1[k].opcode);//(rd,rs,rt,operation)
-									std::cout << "instruction" << STRING_INST1[k];
-									//std::cout << "inst1.begin()" << inst1.begin();
-									std::cout << "error before";
-									inst1.insert(inst1.begin()+led+1+ipos,I);
-									std::cout << "error after";
-									STRING_INST1.insert(STRING_INST1.begin() +led+1+ipos,STRING_INST1[k]);
-									ipos++;//incremented to add loop instruction in the proper order
+									resstation1[i].result = resstation1[i].Vj - resstation1[i].Vk;
 								}
-
-							}
-							if (resstation1[i].Vj != 0)//during final iteration add the instructions outside loop body. ******THIS IS THE LINE CHNAGE FROM BNEZ
-							{
-								//add instructions after loop
-								for (int m = 0; m < INST_AFTERLOOP.size(); m++)
+								//perform decrement
+								if (temp_operation == 9)
 								{
-									inst1.push_back(INST_AFTERLOOP[m]);
+									//resstation1[i].Vj = resstation1[i].Vj - resstation1[i].Vk;
+									//resstation1[i].result = resstation1[i].Vj;
+									resstation1[i].result = resstation1[i].Vj - resstation1[i].Vk;
 								}
+								std::cout<<"Calculation for subtraction "<< resstation1[i].Vj << " - " <<resstation1[i].Vk <<"= " <<resstation1[i].result;
+								//we can now complete the execution and update the resultReady flag
+								resstation1[i].resultReady = true;
+								//reset the latency property
+								resstation1[i].lat = 0;
+								resstation1[i].ISSUE_Lat = 0;
+								//set the Executeclock end
+								inst1[resstation1[i].instNum].executeClockEnd = Clock;
 							}
 
-							// set nextinstuctionafter branch to true. used to stall the next instruction of branch till branch instruction is executed.
-							nextinstructionafterbranch = true;
-							//we can now complete the execution and update the resultReady flag
-							resstation1[i].resultReady = true;
-							//reset the latency property
-							resstation1[i].lat = 0;
-							resstation1[i].ISSUE_Lat = 0;
-							//set the Executeclock end
-							inst1[resstation1[i].instNum].executeClockEnd = Clock;
-							std::cout << "Current Instruction" << currentInst_ISSUE;
-							Clock = Clock - 2;//temporary fix for issue iteration of branch instruction clock cycle
-							loopclock = false; // set the loop clock to display the correct clock again
-							
 
 						}
 
+						if (temp_operation == 10)// means LD
+						{
+							if (resstation1[i].lat == LDINT)
+							{
+								//set functional unit to clock cycle
+								FUstatus[4]=-1;
+								resstation1[i].result = resstation1[i].Vj;
+								//we can now complete the execution and update the resultReady flag
+								resstation1[i].resultReady = true;
+								//reset the latency property
+								resstation1[i].lat = 0;
+								resstation1[i].ISSUE_Lat = 0;
+								//set the Executeclock end
+								inst1[resstation1[i].instNum].executeClockEnd = Clock;
+
+							}
+
+
+						}
+						if (temp_operation == 11)// means SD
+						{
+							if (resstation1[i].lat - 1 == INT)
+							{
+								//set functional unit to clock cycle
+								FUstatus[4]=-1;
+								resstation1[i].result = resstation1[i].Vj;
+								//we can now complete the execution and update the resultReady flag
+								resstation1[i].resultReady = true;
+								//reset the latency property
+								resstation1[i].lat = 0;
+								resstation1[i].ISSUE_Lat = 0;
+								//set the Executeclock end
+								inst1[resstation1[i].instNum].executeClockEnd = Clock;
+
+							}
+
+
+						}
+
+						if (temp_operation == 50)// means BNEZ
+						{
+							std::cout<<"issuing a BNEZ"<<endl;
+							if (resstation1[i].lat - 1 == INT)
+							{
+								
+								//add next iteration instructions to instruction set using loopstartline and loopendline
+								std::cout << "reservationstation. vj & vk bnez =====" << resstation1[i].Vj<<"  "<< resstation1[i].Vk<<endl;
+								resstation1[i].result = resstation1[i].Vj;
+								std::cout << "lst == " << lst << "led == " << led<<endl;
+								if (resstation1[i].Vj != 0)
+								{
+									for (int k = lst; k <= led; k++)
+									{
+
+										Instruction I(inst1[k].rd, inst1[k].rs, inst1[k].rt, inst1[k].opcode);//(rd,rs,rt,operation)
+										std::cout << "instruction" << STRING_INST1[k];
+										//std::cout << "inst1.begin()" << inst1.begin();
+										std::cout << "error before";
+										inst1.insert(inst1.begin()+led+1+ipos,I);
+										std::cout << "error after";
+										STRING_INST1.insert(STRING_INST1.begin() +led+1+ipos,STRING_INST1[k]);
+										ipos++;//incremented to add loop instruction in the proper order
+									}
+
+								}
+								if (resstation1[i].Vj == 0)//during final iteration add the instructions outside loop body.
+								{
+									//add instructions after loop
+									for (int m = 0; m < INST_AFTERLOOP.size(); m++)
+									{
+										inst1.push_back(INST_AFTERLOOP[m]);
+									}
+								}
+
+								// set nextinstuctionafter branch to true. used to stall the next instruction of branch till branch instruction is executed.
+								nextinstructionafterbranch = true;
+								//we can now complete the execution and update the resultReady flag
+								resstation1[i].resultReady = true;
+								//reset the latency property
+								resstation1[i].lat = 0;
+								resstation1[i].ISSUE_Lat = 0;
+								//set the Executeclock end
+								inst1[resstation1[i].instNum].executeClockEnd = Clock;
+								std::cout << "Current Instruction" << currentInst_ISSUE;
+								Clock = Clock - 2;//temporary fix for issue iteration of branch instruction clock cycle
+								loopclock = false; // set the loop clock to display the correct clock again
+								
+
+							}
+
+
+						}
+						
+						if (temp_operation == 51)// means BEZ
+						{
+							std::cout<<"issuing a BEZ"<<endl;
+							if (resstation1[i].lat - 1 == INT)
+							{
+								
+								//add next iteration instructions to instruction set using loopstartline and loopendline
+								std::cout << "reservationstation. vj & vk bez =====" << resstation1[i].Vj<<"  "<< resstation1[i].Vk<<endl;
+								resstation1[i].result = resstation1[i].Vj;
+								std::cout << "lst == " << lst << "led == " << led<<endl;
+								if (resstation1[i].Vj == 0) //****************THIS LINE IS THE CHANGE FROM BNEZ
+								{
+									for (int k = lst; k <= led; k++)
+									{
+
+										Instruction I(inst1[k].rd, inst1[k].rs, inst1[k].rt, inst1[k].opcode);//(rd,rs,rt,operation)
+										std::cout << "instruction" << STRING_INST1[k];
+										//std::cout << "inst1.begin()" << inst1.begin();
+										std::cout << "error before";
+										inst1.insert(inst1.begin()+led+1+ipos,I);
+										std::cout << "error after";
+										STRING_INST1.insert(STRING_INST1.begin() +led+1+ipos,STRING_INST1[k]);
+										ipos++;//incremented to add loop instruction in the proper order
+									}
+
+								}
+								if (resstation1[i].Vj != 0)//during final iteration add the instructions outside loop body. ******THIS IS THE LINE CHNAGE FROM BNEZ
+								{
+									//add instructions after loop
+									for (int m = 0; m < INST_AFTERLOOP.size(); m++)
+									{
+										inst1.push_back(INST_AFTERLOOP[m]);
+									}
+								}
+
+								// set nextinstuctionafter branch to true. used to stall the next instruction of branch till branch instruction is executed.
+								nextinstructionafterbranch = true;
+								//we can now complete the execution and update the resultReady flag
+								resstation1[i].resultReady = true;
+								//reset the latency property
+								resstation1[i].lat = 0;
+								resstation1[i].ISSUE_Lat = 0;
+								//set the Executeclock end
+								inst1[resstation1[i].instNum].executeClockEnd = Clock;
+								std::cout << "Current Instruction" << currentInst_ISSUE;
+								Clock = Clock - 2;//temporary fix for issue iteration of branch instruction clock cycle
+								loopclock = false; // set the loop clock to display the correct clock again
+								
+
+							}
+
+						}
 					}
 				}
 			}
@@ -1073,7 +1112,14 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 			}
 		}
 	}
-
+	//now that any possible instructions have begin execution reset all funcitonal units but divide to available if Pipelined
+	cout<<FUstatus[0]<<" "<<FUstatus[1]<<" "<<FUstatus[2]<<" "<<FUstatus[3]<<" "<<FUstatus[4]<<" "<<endl;
+	if (Pipelined==true){
+		FUstatus[0]=-1;
+		FUstatus[1]=-1;
+		FUstatus[3]=-1;
+		FUstatus[4]=-1;
+	}
 }
 
 
@@ -1193,8 +1239,26 @@ void printRegisters(vector<int> RegistersVector) {
 int main()
 {
 	int i, j;
-
-
+	string yn;
+	
+	cout<<"Run functional units pipelined? (y/n) ";
+	cin>>yn;
+	
+	while (1){
+	if (yn=="y"| yn=="Y"| yn=="1"){
+			Pipelined=1;
+			break;
+		}
+		else if (yn=="n"| yn=="N"| yn=="0"){
+			Pipelined=0;
+			break;
+		}
+		else{
+			cout<<"Run functional units pipelined? (y/n) ";
+			cin>>yn;
+		}
+	}
+	
 	cout << "File path for Latencies file: ";
 	//string projectLatencies = "Latencies.txt"; //shortcut for not entering input manually
 	string projectLatencies;
@@ -1334,10 +1398,13 @@ int main()
 
 	vector<reservationStation> resStation = { ADD1,ADD2,ADD3,ADD4,MULT1,MULT2,MULT3,MULT4,DIV1,DIV2,DIV3,DIV4,LDSD1,LDSD2,LDSD3,LDSD4,BRANCH1,BRANCH2};
 
+	vector<int> FUstatus = {-1,-1,-1,-1,-1}; //0-FPADD/SUB, 1-FPMUL, 2-FPDIV, 3-FP LD/SD, 4-Int, -1 is not in use
+
 	// Initialize Register Status Class
 	registerStatus
 		F0(regEmpty), F1(regEmpty), F2(regEmpty), F3(regEmpty), F4(regEmpty), F5(regEmpty),
 		F6(regEmpty), F7(regEmpty), F8(regEmpty), F9(regEmpty), F10(regEmpty), F11(regEmpty), F12(regEmpty), X0(regEmpty), X1(regEmpty), X2(regEmpty), X3(regEmpty), X4(regEmpty), X5(regEmpty), X6(regEmpty), X7(regEmpty);
+	
 	vector<registerStatus> registerStatus = { F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,X0, X1, X2, X3, X4, X5, X6, X7 };
 
 	// Initialize register file vector
@@ -1511,7 +1578,7 @@ int main()
 		Clock++; // system clock
 
 		issue(inst, resStation, registerStatus, registers,operation);
-		execute(inst, resStation, registerStatus, registers, FPMUL, FPDIV, FPADD, FPLD, FPALU, LDINT, INT,looplinestart,looplinened,string_inst,inst_afterloop);
+		execute(inst, resStation, registerStatus, registers, FPMUL, FPDIV, FPADD, FPLD, FPALU, LDINT, INT,looplinestart,looplinened,string_inst,inst_afterloop,FUstatus);
 		writeback(inst, resStation, registerStatus, registers);
 
 		//print cc table
