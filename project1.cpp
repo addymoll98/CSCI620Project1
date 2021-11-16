@@ -876,8 +876,9 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 							//perform addition increment
 							if (temp_operation == 8)
 							{
-								resstation1[i].Vj = resstation1[i].Vj + resstation1[i].Vk;
-								resstation1[i].result = resstation1[i].Vj;
+								//resstation1[i].Vj = resstation1[i].Vj + resstation1[i].Vk;
+								//resstation1[i].result = resstation1[i].Vj;
+								resstation1[i].result = resstation1[i].Vj + resstation1[i].Vk;
 							}
 
 							//we can now complete the execution and update the resultReady flag
@@ -903,8 +904,9 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 							//perform decrement
 							if (temp_operation == 9)
 							{
-								resstation1[i].Vj = resstation1[i].Vj - resstation1[i].Vk;
-								resstation1[i].result = resstation1[i].Vj;
+								//resstation1[i].Vj = resstation1[i].Vj - resstation1[i].Vk;
+								//resstation1[i].result = resstation1[i].Vj;
+								resstation1[i].result = resstation1[i].Vj - resstation1[i].Vk;
 							}
 							std::cout<<"Calculation for subtraction "<< resstation1[i].Vj << " - " <<resstation1[i].Vk <<"= " <<resstation1[i].result;
 							//we can now complete the execution and update the resultReady flag
@@ -1196,9 +1198,10 @@ int main()
 	cout << "File path for Latencies file: ";
 	//string projectLatencies = "Latencies.txt"; //shortcut for not entering input manually
 	string projectLatencies;
-	cin >> projectLatencies;
-	cout << "File path is" << projectLatencies << endl;
-
+	//cin >> projectLatencies;
+	//cout << "File path is" << projectLatencies << endl;
+	projectLatencies="Latencies.txt";
+	
 	vector<latencies> l; //vector named l for latencies struct
 	vector<Instruction> inst;//Vector for Instruction class
 	vector<string> string_inst;
