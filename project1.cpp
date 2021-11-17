@@ -758,13 +758,13 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 					|| (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 2) 
 					|| (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 3))
 				{
-					if (((resstation1[i].op==0 || resstation1[i].op==1)&& FUstatus[0]==-1) //check if functional unit is available
-						|| ((resstation1[i].op==2)&&FUstatus[1]==-1)
-						|| ((resstation1[i].op==3)&&FUstatus[2]==-1)
-						|| ((resstation1[i].op==4 || resstation1[i].op==5)&&FUstatus[3]==-1)
-						||((resstation1[i].op==6 || resstation1[i].op==7|| resstation1[i].op==8|| resstation1[i].op==9|| resstation1[i].op==10|| resstation1[i].op==11)&&FUstatus[4]==-1))
+					if (inst1[resstation1[i].instNum].executeClockBegin == 0)// check if the executeclockbegin is having default value. Use instNum variable find the instruction number
 					{
-						if (inst1[resstation1[i].instNum].executeClockBegin == 0)// check if the executeclockbegin is having default value. Use instNum variable find the instruction number
+						if (((resstation1[i].op==0 || resstation1[i].op==1) && FUstatus[0]==-1) //check if functional unit is available
+							|| ((resstation1[i].op==2) && FUstatus[1]==-1)
+							|| ((resstation1[i].op==3) && FUstatus[2]==-1)
+							|| ((resstation1[i].op==4 || resstation1[i].op==5) && FUstatus[3]==-1)
+							|| ((resstation1[i].op==6 || resstation1[i].op==7|| resstation1[i].op==8|| resstation1[i].op==9|| resstation1[i].op==10|| resstation1[i].op==11) && FUstatus[4]==-1))
 						{
 							inst1[resstation1[i].instNum].executeClockBegin = Clock;// if it is issue the current clock value as execution start cycle
 							if(resstation1[i].op==0 || resstation1[i].op==1) //if FADD or FSUB
@@ -778,6 +778,8 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 							if(resstation1[i].op==6 || resstation1[i].op==7|| resstation1[i].op==8|| resstation1[i].op==9|| resstation1[i].op==10|| resstation1[i].op==11) //int functional unit
 								FUstatus[4]=Clock+INT; //int functional unit is 1 cc
 						}
+					}
+					if (inst1[resstation1[i].instNum].executeClockBegin!=0){
 						resstation1[i].lat++;// Increment the latency to match the latency of FMUL,FADD,FSUB etc. If latency matches means that we can perform the execution
 						int temp_operation = resstation1[i].op; // store operation type
 						if (temp_operation == 0)// means FADD Operation
