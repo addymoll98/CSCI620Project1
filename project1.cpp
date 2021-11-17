@@ -160,16 +160,18 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	// determine if there is an open RS of r type. if yes
 	// -> r = that open spot.
 	// Boundry's of given RS
-	int addresst = 4;
-	int mulresst = 8;
-	int divresst = 12;
-	int ldsdresst = 16;
-	int branchresst = 19;
+	int addresst = 2;
+	int mulresst = 2;
+	int divresst = 2;
+	int ldsdresst = 2;
+	int branchresst = 2;
 	int rstno = 999;//reservation station number. Initializer to avoid random values.
+	cout<<resstation1[0].busy<<" "<<resstation1[1].busy<<" "<<resstation1[2].busy<<" "<<resstation1[3].busy<<" "<<resstation1[4].busy<<" "<<resstation1[5].busy<<" "<<resstation1[6].busy<<" "<<resstation1[7].busy<<" "<<resstation1[8].busy<<" "<<resstation1[9].busy<<" "<<resstation1[10].busy<<" "<<resstation1[11].busy<<endl;
+	cout<<"r is "<<r<<endl; 
 	if (r == 0) // if op is FADD
 	{
 		for (int i = 0; i < addresst; i++) {
-			if (!resstation1[i].busy) {
+			if (!resstation1[i+0].busy) {
 				rstno = i;
 				resstation1[i].op = 0;
 				rstationFree = true;
@@ -183,7 +185,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	if (r == 1) // if op is FSUB
 	{
 		for (int i = 0; i < addresst; i++) {
-			if (!resstation1[i].busy) {
+			if (!resstation1[i+0].busy) {
 				rstno = i;
 				resstation1[i].op = 1;
 				rstationFree = true;
@@ -196,10 +198,10 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	}
 	if (r == 2)// if op is FMUL
 	{
-		for (int i = 4; i < mulresst; i++) {
-			if (!resstation1[i].busy) {
-				rstno = i;
-				resstation1[i].op = 2;
+		for (int i = 0; i < mulresst; i++) {
+			if (!resstation1[i+2].busy) {
+				rstno = i+2;
+				resstation1[i+2].op = 2;
 				rstationFree = true;
 				currentInst_ISSUE++;
 				break;
@@ -211,10 +213,10 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	}
 	if (r == 3)// if op is FDIV
 	{
-		for (int i = 8; i < divresst; i++) {
-			if (!resstation1[i].busy) {
-				rstno = i;
-				resstation1[i].op = 3;
+		for (int i = 0; i < divresst; i++) {
+			if (!resstation1[i+4].busy) {
+				rstno = i+4;
+				resstation1[i+4].op = 3;
 				rstationFree = true;
 				currentInst_ISSUE++;
 				break;
@@ -226,13 +228,13 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	if (r == 4)//for load
 	{
 		cout<<"in issue load"<<endl;
-		for (int i = 12; i < ldsdresst; i++) {
-			if (!resstation1[i].busy) {
-				rstno = i;
-				resstation1[i].op = 4;
+		for (int i = 0; i < ldsdresst; i++) {
+			if (!resstation1[i+6].busy) {
+				rstno = i+6;
+				resstation1[i+6].op = 4;
 				rstationFree = true;
 				currentInst_ISSUE++;
-				resstation1[i].a = 0;
+				resstation1[i+6].a = 0;
 				break;
 			}
 		}
@@ -242,13 +244,13 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	if (r == 5)//for store
 	{
 		cout<<"in issue store"<<endl;
-		for (int i = 12; i < ldsdresst; i++) {
-			if (!resstation1[i].busy) {
-				rstno = i;
-				resstation1[i].op = 5;
+		for (int i = 0; i < ldsdresst; i++) {
+			if (!resstation1[i+6].busy) {
+				rstno = i+6;
+				resstation1[i+6].op = 5;
 				rstationFree = true;
 				currentInst_ISSUE++;
-				resstation1[i].a = 1;
+				resstation1[i+6].a = 1;
 				break;
 			}
 		}
@@ -258,9 +260,9 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	if (r == 6) // if op is ADD
 	{
 		for (int i = 0; i < addresst; i++) {
-			if (!resstation1[i].busy) {
-				rstno = i;
-				resstation1[i].op = 6;
+			if (!resstation1[i+8].busy) {
+				rstno = i+8;
+				resstation1[i+8].op = 6;
 				rstationFree = true;
 				currentInst_ISSUE++;
 				break;
@@ -273,9 +275,9 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	if (r == 7) // if op is SUB
 	{
 		for (int i = 0; i < addresst; i++) {
-			if (!resstation1[i].busy) {
-				rstno = i;
-				resstation1[i].op = 7;
+			if (!resstation1[i+8].busy) {
+				rstno = i+8;
+				resstation1[i+8].op = 7;
 				rstationFree = true;
 				currentInst_ISSUE++;
 				break;
@@ -287,12 +289,12 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	if (r == 8) // if op is ADDI
 	{
 		for (int i = 0; i < addresst; i++) {
-			if (!resstation1[i].busy) {
-				rstno = i;
-				resstation1[i].op = 8;
+			if (!resstation1[i+8].busy) {
+				rstno = i+8;
+				resstation1[i+8].op = 8;
 				rstationFree = true;
 				currentInst_ISSUE++;
-				resstation1[i].a = 2;
+				resstation1[i+8].a = 2;
 				break;
 			}
 		}
@@ -303,12 +305,12 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	if (r == 9) // if op is SUBI
 	{
 		for (int i = 0; i < addresst; i++) {
-			if (!resstation1[i].busy) {
-				rstno = i;
-				resstation1[i].op = 9;
+			if (!resstation1[i+8].busy) {
+				rstno = i+8;
+				resstation1[i+8].op = 9;
 				rstationFree = true;
 				currentInst_ISSUE++;
-				resstation1[i].a = 2;
+				resstation1[i+8].a = 2;
 				break;
 			}
 		}
@@ -317,13 +319,13 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	}
 	if (r == 10)//for loadint
 	{
-		for (int i = 12; i < ldsdresst; i++) {
-			if (!resstation1[i].busy) {
-				rstno = i;
-				resstation1[i].op = 10;
+		for (int i = 0; i < ldsdresst; i++) {
+			if (!resstation1[i+8].busy) {
+				rstno = i+8;
+				resstation1[i+8].op = 10;
 				rstationFree = true;
 				currentInst_ISSUE++;
-				resstation1[i].a = 0;
+				resstation1[i+8].a = 0;
 				break;
 			}
 		}
@@ -332,13 +334,13 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	}
 	if (r == 11)//for storeint
 	{
-		for (int i = 12; i < ldsdresst; i++) {
-			if (!resstation1[i].busy) {
-				rstno = i;
-				resstation1[i].op = 11;
+		for (int i = 0; i < ldsdresst; i++) {
+			if (!resstation1[i+8].busy) {
+				rstno = i+8;
+				resstation1[i+8].op = 11;
 				rstationFree = true;
 				currentInst_ISSUE++;
-				resstation1[i].a = 1;
+				resstation1[i+8].a = 1;
 				break;
 			}
 		}
@@ -348,13 +350,13 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	if (r == 50)// for BNEZ Operation
 	{
 		std::cout << "Inside bnez";
-		for (int i = 16; i < branchresst; i++) {
-			if (!resstation1[i].busy) {
-				rstno = i;
-				resstation1[i].op = 50;
+		for (int i = 0; i < branchresst; i++) {
+			if (!resstation1[i+10].busy) {
+				rstno = i+10;
+				resstation1[i+10].op = 50;
 				rstationFree = true;
 				currentInst_ISSUE++;
-				resstation1[i].a = 3; // value is 3 for branch instruction
+				resstation1[i+10].a = 3; // value is 3 for branch instruction
 				break;
 			}
 		}
@@ -364,13 +366,13 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	if (r == 51)// for BEQZ Operation
 	{
 		std::cout << "Inside beqz";
-		for (int i = 16; i < branchresst; i++) {
-			if (!resstation1[i].busy) {
-				rstno = i;
-				resstation1[i].op = 51;
+		for (int i = 0; i < branchresst; i++) {
+			if (!resstation1[i+10].busy) {
+				rstno = i+10;
+				resstation1[i+10].op = 51;
 				rstationFree = true;
 				currentInst_ISSUE++;
-				resstation1[i].a = 3; // value is 3 for branch instruction
+				resstation1[i+10].a = 3; // value is 3 for branch instruction
 				break;
 			}
 		}
@@ -1369,29 +1371,33 @@ int main()
 
 	reservationStation
 		ADD1(0, OperandInit, 999),
-		ADD2(0, OperandInit, 999),
-		ADD3(0, OperandInit, 999),
-		ADD4(0, OperandInit, 999);
+		ADD2(0, OperandInit, 999);
+	//	ADD3(0, OperandInit, 999),
+	//	ADD4(0, OperandInit, 999);
 	reservationStation
 		MULT1(2, OperandInit, 999),
-		MULT2(2, OperandInit, 999),
-		MULT3(2, OperandInit, 999),
-		MULT4(2, OperandInit, 999);
+		MULT2(2, OperandInit, 999);
+	//	MULT3(2, OperandInit, 999),
+	//	MULT4(2, OperandInit, 999);
 	reservationStation
 		DIV1(3, OperandInit, 999),
-		DIV2(3, OperandInit, 999),
-		DIV3(3, OperandInit, 999),
-		DIV4(3, OperandInit, 999);
+		DIV2(3, OperandInit, 999);
+	//	DIV3(3, OperandInit, 999),
+	//	DIV4(3, OperandInit, 999);
 	reservationStation
 		LDSD1(4, OperandInit, 999),
-		LDSD2(4, OperandInit, 999),
-		LDSD3(4, OperandInit, 999),
-		LDSD4(4, OperandInit, 999);
+		LDSD2(4, OperandInit, 999);
+	//	LDSD3(4, OperandInit, 999),
+	//	LDSD4(4, OperandInit, 999);
 	reservationStation 
 		BRANCH1(51, OperandInit, 999),
 		BRANCH2(51, OperandInit, 999);
+	reservationStation	
+		INTEGER1(5, OperandInit, 999),
+		INTEGER2(5, OperandInit,999);
 
-	vector<reservationStation> resStation = { ADD1,ADD2,ADD3,ADD4,MULT1,MULT2,MULT3,MULT4,DIV1,DIV2,DIV3,DIV4,LDSD1,LDSD2,LDSD3,LDSD4,BRANCH1,BRANCH2};
+//	vector<reservationStation> resStation = { ADD1,ADD2,ADD3,ADD4,MULT1,MULT2,MULT3,MULT4,DIV1,DIV2,DIV3,DIV4,LDSD1,LDSD2,LDSD3,LDSD4,BRANCH1,BRANCH2};
+	vector<reservationStation> resStation = { ADD1,ADD2,MULT1,MULT2,DIV1,DIV2,LDSD1,LDSD2,INTEGER1,INTEGER2,BRANCH1,BRANCH2};
 
 	vector<int> FUstatus = {-1,-1,-1,-1,-1}; //0-FPADD/SUB, 1-FPMUL, 2-FPDIV, 3-FP LD/SD, 4-Int, -1 is not in use
 
