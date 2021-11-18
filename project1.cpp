@@ -523,10 +523,8 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 		resstation1[rstno].ISSUE_Lat = 0;
 		// set reservation station instuction
 		// number == current instruction
-
 		// set clock cycle for issue time
 		inst1[currentInst_ISSUE - 1].issueClock = Clock;
-
 	}*/
 	//set instNum property of reservation station to current Instruction number. Used in execute and writback to set clock value for execute & writeback
 	resstation1[rstno].instNum = currentInst_ISSUE - 1;
@@ -537,14 +535,12 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 // execute without loop
 /*void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1, vector<registerStatus>& regstatus1, vector<int>& reg1, int FPMUL, int FPDIV, int FPADD, int FPLD, int FPALU, int LDINT, int INT)
 {
-
 	for (int i = 0; i < resstation1.size(); i++)
 	{
 		if (resstation1[i].busy == true)//check if any reservation station is busy
 		{
 			if (resstation1[i].ISSUE_Lat >= ISSUE_Lat)//check if issue latency is equal to 1 else wait for 1 cc
 			{
-
 				if ((resstation1[i].Qj == OperandAvailable && resstation1[i].Qk == OperandAvailable) || (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 0) || (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 1) || (resstation1[i].Qj == OperandAvailable && resstation1[i].a == 2))// check for operandavailable flag in Qj & Qk and QJ and a value for load and stores
 				{
 					if (inst1[resstation1[i].instNum].executeClockBegin == 0)// check if the executeclockbegin is having default value. Use instNum variable find the instruction number
@@ -567,8 +563,6 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 							//set the Executeclock end
 							inst1[resstation1[i].instNum].executeClockEnd = Clock;
 						}
-
-
 					}
 					if (temp_operation == 1)// means FSUB Operation
 					{
@@ -584,8 +578,6 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 							//set the Executeclock end
 							inst1[resstation1[i].instNum].executeClockEnd = Clock;
 						}
-
-
 					}
 					if (temp_operation == 2)// means FMUL Operation
 					{
@@ -601,8 +593,6 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 							//set the Executeclock end
 							inst1[resstation1[i].instNum].executeClockEnd = Clock;
 						}
-
-
 					}
 					if (temp_operation == 3)// means FDIV Operation
 					{
@@ -618,15 +608,11 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 							//set the Executeclock end
 							inst1[resstation1[i].instNum].executeClockEnd = Clock;
 						}
-
-
 					}
-
 					if (temp_operation == 4)// means fld
 					{
 						if (resstation1[i].lat == FPLD)
 						{
-
 							resstation1[i].result = resstation1[i].Vj;
 							//we can now complete the execution and update the resultReady flag
 							resstation1[i].resultReady = true;
@@ -635,12 +621,8 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 							resstation1[i].ISSUE_Lat = 0;
 							//set the Executeclock end
 							inst1[resstation1[i].instNum].executeClockEnd = Clock;
-
 						}
-
-
 					}
-
 					if (temp_operation == 5)// means fsd
 					{
 						if (resstation1[i].lat == FPALU)
@@ -653,10 +635,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 							resstation1[i].ISSUE_Lat = 0;
 							//set the Executeclock end
 							inst1[resstation1[i].instNum].executeClockEnd = Clock;
-
 						}
-
-
 					}
 					if (temp_operation == 6 || temp_operation == 8)// means ADD,ADDI Operation
 					{
@@ -672,8 +651,6 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 							//set the Executeclock end
 							inst1[resstation1[i].instNum].executeClockEnd = Clock;
 						}
-
-
 					}
 					if (temp_operation == 7 || temp_operation == 9)// means SUB,SUBI Operation
 					{
@@ -689,15 +666,11 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 							//set the Executeclock end
 							inst1[resstation1[i].instNum].executeClockEnd = Clock;
 						}
-
-
 					}
-
 					if (temp_operation == 10)// means LD
 					{
 						if (resstation1[i].lat == LDINT)
 						{
-
 							resstation1[i].result = resstation1[i].Vj;
 							//we can now complete the execution and update the resultReady flag
 							resstation1[i].resultReady = true;
@@ -706,16 +679,12 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 							resstation1[i].ISSUE_Lat = 0;
 							//set the Executeclock end
 							inst1[resstation1[i].instNum].executeClockEnd = Clock;
-
 						}
-
-
 					}
 					if (temp_operation == 11)// means SD
 					{
 						if (resstation1[i].lat -1 == INT)
 						{
-
 							resstation1[i].result = resstation1[i].Vj;
 							//we can now complete the execution and update the resultReady flag
 							resstation1[i].resultReady = true;
@@ -724,10 +693,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 							resstation1[i].ISSUE_Lat = 0;
 							//set the Executeclock end
 							inst1[resstation1[i].instNum].executeClockEnd = Clock;
-
 						}
-
-
 					}
 				}
 			}
@@ -738,7 +704,6 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 			}
 		}
 	}
-
 }*/
 
 //execute with loop
@@ -1253,30 +1218,27 @@ void writeback(vector<Instruction>& inst1, vector<reservationStation>& resstatio
 
 
 void printclockcycletable(vector<Instruction> INST, vector<string> STRING_INST) {
-	char separator = ' ';
-	const int width = 20;
-	char lineSeperator = '-';
-	const int lineWidth = 35;
+
+	string execClockResult;     //for combining execClockBegin and execClockEnd
 
 	// Define column labels
-	std::cout << left << setw(width) << setfill(separator) << "Instruction";
-	std::cout << left << setw(width) << setfill(separator) << "Issue";
-	std::cout << left << setw(width) << setfill(separator) << "Execute";
-	std::cout << left << setw(width) << setfill(separator) << "WB";
-	std::cout << left << setw(width) << setfill(separator) << "SystemClock" << endl;
-	std::cout << right << setw(width * 5) << setfill(separator) << Clock;
-	std::cout << endl;
-	std::cout << left << setw(lineWidth) << setfill(lineSeperator);
-	std::cout << endl;
+	cout << endl;
+	cout << left << setw(30) << "Instruction";
+	cout << setw(17) << "Issue";
+	cout << setw(17) << "Execute";
+	cout << setw(17) << "WriteBack";
+	cout << setw(17) << "SystemClock" << endl;
+	cout << right << setw(83) << Clock << endl;
+	
+
 	// Define Row Labels and values
 	for (int i = 0; i < INST.size(); i++) {
+		execClockResult = to_string(INST[i].executeClockBegin) + "-" + to_string(INST[i].executeClockEnd); //combining into one string for ouputting
 
-		std::cout << left << setw(width) << setfill(separator) << STRING_INST[i];
-		std::cout << left << setw(width) << setfill(separator) << INST[i].issueClock;
-		std::cout << INST[i].executeClockBegin << "-";
-		std::cout << left << setw(width) << setfill(separator) << INST[i].executeClockEnd;
-		std::cout << left << setw(width) << setfill(separator) << INST[i].writebackClock;
-		std::cout << endl;
+		cout << left << setw(30) << STRING_INST[i];
+		cout << setw(17) << INST[i].issueClock;
+		cout << setw(17) << execClockResult;
+		cout << setw(17) << INST[i].writebackClock << endl;
 
 	}
 
@@ -1319,7 +1281,7 @@ int main()
 	string projectLatencies;
 	//cin >> projectLatencies;
 	//cout << "File path is" << projectLatencies << endl;
-	projectLatencies = "Latencies.txt";
+	projectLatencies = "latencies.txt";
 
 	vector<latencies> l; //vector named l for latencies struct
 	vector<Instruction> inst;//Vector for Instruction class
@@ -1729,7 +1691,7 @@ int main()
 		if (Total_WRITEBACKS == inst.size())
 			Done = true;
 
-		std::cout << endl;
+		cout << endl;
 	} while (!Done);
 
 
