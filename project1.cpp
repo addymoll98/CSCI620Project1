@@ -135,6 +135,7 @@ int Clock = 0;
 // used to check if INST == WRITEBACKS to end program
 bool Done = true;
 bool Pipelined = true;
+
 int Total_WRITEBACKS = 0;
 // Counter for instructions; Used to end issue if value is equal to length of instructions
 int currentInst_ISSUE = 0;
@@ -189,6 +190,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	{
 		for (int i = 0; i < addresst; i++) {
 			if (!resstation1[i + 0].busy) {
+
 				rstno = i;
 				resstation1[i].op = 1;
 				rstationFree = true;
@@ -492,6 +494,8 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 		}
 		cout << "at end of that loop, and issue lat is: " << resstation1[rstno].ISSUE_Lat << endl;
 	}
+	
+
 
 
 
@@ -709,6 +713,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 //execute with loop
 
 void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1, vector<registerStatus>& regstatus1, vector<int>& reg1, int FPMUL, int FPDIV, int FPADD, int FPLD, int FPALU, int LDINT, int INT, int lst, int led, vector<string>& STRING_INST1, vector<Instruction> INST_AFTERLOOP, vector<int>& FUstatus)
+
 {
 
 
@@ -1079,6 +1084,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 								}
 								if (resstation1[i].Vj != 0)//during final iteration add the instructions outside loop body.
+
 								{
 									//add instructions after loop
 									for (int m = 0; m < INST_AFTERLOOP.size(); m++)
@@ -1105,8 +1111,6 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 
 							}
-							
-
 						}
 					}
 				}
@@ -1138,7 +1142,6 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 				cout << "resetting fu for " << i << " in pipeline false if" << endl;
 			}
 		}
-
 	}
 }
 
@@ -1281,7 +1284,8 @@ int main()
 	string projectLatencies;
 	//cin >> projectLatencies;
 	//cout << "File path is" << projectLatencies << endl;
-	projectLatencies = "latencies.txt";
+	
+  projectLatencies = "latencies.txt";
 
 	vector<latencies> l; //vector named l for latencies struct
 	vector<Instruction> inst;//Vector for Instruction class
@@ -1435,6 +1439,7 @@ int main()
 
 	vector<int> FUstatus = { -1,-1,-1,-1,-1,-1 }; //0-FPADD/SUB, 1-FPMUL, 2-FPDIV, 3-FP LD/SD, 4-Int,5-Branch -1 is not in use
 
+
 	// Initialize Register Status Class
 	registerStatus
 		F0(regEmpty), F1(regEmpty), F2(regEmpty), F3(regEmpty), F4(regEmpty), F5(regEmpty),
@@ -1442,6 +1447,7 @@ int main()
 		X0(regEmpty), X1(regEmpty), X2(regEmpty), X3(regEmpty), X4(regEmpty), X5(regEmpty), X6(regEmpty), X7(regEmpty);
 
 	vector<registerStatus> registerStatus = { F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,F13, F14, F15,F16,F17, F18, F19,F20, X0, X1, X2, X3, X4, X5, X6, X7 };
+
 
 	// Initialize register file vector
 	vector<int> registers = { ZERO_REG,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,0,21,22,23,24,25,26,27 };
@@ -1665,6 +1671,22 @@ int main()
 			}
 			break;//break to avoid redundant iteration
 		}
+		//BEZ version
+		if (inst[k].opcode == 51)
+		{
+			std::cout << "Inside bez"<<k<<endl;
+			//add instructions after loop
+			for (int m = k+1; m < inst.size(); m++)
+			{
+				inst_afterloop.push_back(inst[m]);
+			}
+			//delete the instructions after loop
+			for (int m = k + 1; m < inst.size(); m++)
+			{
+				inst.erase(inst.begin()+m);
+			}
+			break;//break to avoid redundant iteration
+		}
 	}
 	std::cout << "Instruction Size" << inst.size() << endl;
 	std::cout << "Inst_afterloop size" << inst_afterloop.size() << endl;
@@ -1676,7 +1698,7 @@ int main()
 		issue(inst, resStation, registerStatus, registers, operation);
 		execute(inst, resStation, registerStatus, registers, FPMUL, FPDIV, FPADD, FPLD, FPALU, LDINT, INT, looplinestart, looplinened, string_inst, inst_afterloop, FUstatus);
 		writeback(inst, resStation, registerStatus, registers);
-
+		
 		//print cc table
 		//printRegisters(registers);
 		if (!loopclock)
