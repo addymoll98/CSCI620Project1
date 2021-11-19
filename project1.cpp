@@ -1153,73 +1153,78 @@ void writeback(vector<Instruction>& inst1, vector<reservationStation>& resstatio
 	
 	for (int i = 0; i < resstation1.size(); i++)//loop through reservation stations
 	{
-		//bool waw = false;
+		bool waw = false;
 		if (resstation1[i].resultReady) // check if result ready flag is true. If it is true that means execution cycle is completed
 		{
 			if (resstation1[i].WRITEBACK_Lat == WRITEBACK_Lat)//check if writeback latency is equal to 1 else wait for 1 cc
 			{
 				int inum = resstation1[i].instNum;
-				/*for (int j = 0; j < inum; i++)
+				cout<< "inum "<<inum<<endl;
+				for (int j = 0; j < inum; j++)
 				{
+					//std::cout<<inst1[inum].rd << "==" <<inst1[j].rd << ", wbcc="<<inst1[j].writebackClock<<endl;
 					if ((inst1[inum].rd == inst1[j].rd) && (inst1[j].writebackClock == 0))
 					{
 						waw = true;
-					}
-				}*/
-				if (inst1[resstation1[i].instNum].writebackClock == 0)// check if writeback clock is in default value.
-				{
-
-					inst1[resstation1[i].instNum].writebackClock = Clock;// set the writeback clock value to the current clock
-					if (resstation1[i].a == 3)
-					{
-						inst1[resstation1[i].instNum].writebackClock = Clock;//temporary fix for branch instruction clock cycle.
-					}
-
-				}
-
-				// Check if any registers (via the registerStatus) are waiting for current i result
-				for (int k = 0; k < reg1.size(); k++) {
-					// if RegisterStatus points to the givenreservation station r set that register[x] equal to executed result
-					if (regstatus1[k].Qi == i) {
-						// Write back to Registers
-						reg1[k] = resstation1[i].result;
-						regstatus1[k].Qi = regEmpty;
+						//cout<<"set waw to "<<waw<<endl;
+						//break;
 					}
 				}
-				// Now that the writeb back clock value is set we have to check for reservation stations waiting for the result of the register from the current reservation station.
+				if(!waw){
+					if (inst1[resstation1[i].instNum].writebackClock == 0)// check if writeback clock is in default value.
+					{
 
-				for (int j = 0; j < resstation1.size(); j++) //loop through reservation station and check if values Qj and Qk points to numbers of reservation station i.e(1,2,3,etc)
-				{
-					if (resstation1[j].Qj == i)//if val of Qj == current reservation station number
-					{
-						resstation1[j].Vj = resstation1[i].result;
-						resstation1[j].Qj = OperandAvailable;
+						inst1[resstation1[i].instNum].writebackClock = Clock;// set the writeback clock value to the current clock
+						if (resstation1[i].a == 3)
+						{
+							inst1[resstation1[i].instNum].writebackClock = Clock;//temporary fix for branch instruction clock cycle.
+						}
+
 					}
-					if (resstation1[j].Qk == i)//if val of Qk == current reservation station number
-					{
-						resstation1[j].Vk = resstation1[i].result;
-						resstation1[j].Qk = OperandAvailable;
+
+					// Check if any registers (via the registerStatus) are waiting for current i result
+					for (int k = 0; k < reg1.size(); k++) {
+						// if RegisterStatus points to the givenreservation station r set that register[x] equal to executed result
+						if (regstatus1[k].Qi == i) {
+							// Write back to Registers
+							reg1[k] = resstation1[i].result;
+							regstatus1[k].Qi = regEmpty;
+						}
 					}
+					// Now that the writeb back clock value is set we have to check for reservation stations waiting for the result of the register from the current reservation station.
+
+					for (int j = 0; j < resstation1.size(); j++) //loop through reservation station and check if values Qj and Qk points to numbers of reservation station i.e(1,2,3,etc)
+					{
+						if (resstation1[j].Qj == i)//if val of Qj == current reservation station number
+						{
+							resstation1[j].Vj = resstation1[i].result;
+							resstation1[j].Qj = OperandAvailable;
+						}
+						if (resstation1[j].Qk == i)//if val of Qk == current reservation station number
+						{
+							resstation1[j].Vk = resstation1[i].result;
+							resstation1[j].Qk = OperandAvailable;
+						}
+					}
+
+
+
+					//reset the values of reservation station to make it available for upcoming instructions
+					resstation1[i].busy = false;
+					resstation1[i].resultReady = false;
+					resstation1[i].result = 0;
+					resstation1[i].Vj = 0;
+					resstation1[i].Vk = 0;
+					resstation1[i].Qj = OperandInit;
+					resstation1[i].Qk = OperandInit;
+					resstation1[i].a = 999;
+					resstation1[i].WRITEBACK_Lat = 0;
+					resstation1[i].ISSUE_Lat = 0;
+
+					//After the writeback Increment the Writeback counter
+					Total_WRITEBACKS++;
+
 				}
-
-
-
-				//reset the values of reservation station to make it available for upcoming instructions
-				resstation1[i].busy = false;
-				resstation1[i].resultReady = false;
-				resstation1[i].result = 0;
-				resstation1[i].Vj = 0;
-				resstation1[i].Vk = 0;
-				resstation1[i].Qj = OperandInit;
-				resstation1[i].Qk = OperandInit;
-				resstation1[i].a = 999;
-				resstation1[i].WRITEBACK_Lat = 0;
-				resstation1[i].ISSUE_Lat = 0;
-
-				//After the writeback Increment the Writeback counter
-				Total_WRITEBACKS++;
-
-
 
 			}
 			else
