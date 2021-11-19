@@ -1144,6 +1144,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 				//cout << "resetting fu for " << i << " in pipeline false if" << endl;
 			}
 		}
+		FUstatus[5]=-1; 
 	}
 }
 
