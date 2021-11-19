@@ -1159,7 +1159,7 @@ void writeback(vector<Instruction>& inst1, vector<reservationStation>& resstatio
 			if (resstation1[i].WRITEBACK_Lat == WRITEBACK_Lat)//check if writeback latency is equal to 1 else wait for 1 cc
 			{
 				int inum = resstation1[i].instNum;
-				cout<< "inum "<<inum<<endl;
+				//cout<< "inum "<<inum<<endl;
 				for (int j = 0; j < inum; j++)
 				{
 					//std::cout<<inst1[inum].rd << "==" <<inst1[j].rd << ", wbcc="<<inst1[j].writebackClock<<endl;
