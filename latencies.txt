@@ -1,6 +1,6 @@
 producer        consumer        latency 
-FPMUL           FPALU           7 
-FPDIV           FPALU           11 
+FPMUL           FPALU           6
+FPDIV           FPALU           12
 FPADD           FPALU           2 
 FPLD            FPALU           1 
 FPALU           FPSD            1 
