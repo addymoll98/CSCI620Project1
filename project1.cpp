@@ -170,8 +170,8 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	int ldsdresst = 2;
 	int branchresst = 2;
 	int rstno = 999;//reservation station number. Initializer to avoid random values.
-	cout << resstation1[0].busy << " " << resstation1[1].busy << " " << resstation1[2].busy << " " << resstation1[3].busy << " " << resstation1[4].busy << " " << resstation1[5].busy << " " << resstation1[6].busy << " " << resstation1[7].busy << " " << resstation1[8].busy << " " << resstation1[9].busy << " " << resstation1[10].busy << " " << resstation1[11].busy << endl;
-	cout << "r is " << r << endl;
+	//cout << resstation1[0].busy << " " << resstation1[1].busy << " " << resstation1[2].busy << " " << resstation1[3].busy << " " << resstation1[4].busy << " " << resstation1[5].busy << " " << resstation1[6].busy << " " << resstation1[7].busy << " " << resstation1[8].busy << " " << resstation1[9].busy << " " << resstation1[10].busy << " " << resstation1[11].busy << endl;
+	//cout << "r is " << r << endl;
 	if (r == 0) // if op is FADD
 	{
 		for (int i = 0; i < addresst; i++) {
@@ -232,7 +232,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	}
 	if (r == 4)//for load
 	{
-		cout << "in issue load" << endl;
+		//cout << "in issue load" << endl;
 		for (int i = 0; i < ldsdresst; i++) {
 			if (!resstation1[i + 6].busy) {
 				rstno = i + 6;
@@ -248,7 +248,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	}
 	if (r == 5)//for store
 	{
-		cout << "in issue store" << endl;
+		//cout << "in issue store" << endl;
 		for (int i = 0; i < ldsdresst; i++) {
 			if (!resstation1[i + 6].busy) {
 				rstno = i + 6;
@@ -354,7 +354,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	}
 	if (r == 50)// for BNEZ Operation
 	{
-		std::cout << "Inside bnez";
+		//std::cout << "Inside bnez";
 		for (int i = 0; i < branchresst; i++) {
 			if (!resstation1[i + 10].busy) {
 				rstno = i + 10;
@@ -370,7 +370,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	}
 	if (r == 51)// for BEQZ Operation
 	{
-		std::cout << "Inside beqz";
+		//std::cout << "Inside beqz";
 		for (int i = 0; i < branchresst; i++) {
 			if (!resstation1[i + 10].busy) {
 				rstno = i + 10;
@@ -485,7 +485,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 
 		if (it == OPERATION.end()) {
 			// not found  
-			std::cout << "Element not found";
+			//std::cout << "Element not found";
 		}
 		else {
 			// found  
@@ -910,7 +910,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 									//resstation1[i].result = resstation1[i].Vj;
 									resstation1[i].result = resstation1[i].Vj - resstation1[i].Vk;
 								}
-								std::cout << "Calculation for subtraction " << resstation1[i].Vj << " - " << resstation1[i].Vk << "= " << resstation1[i].result;
+								//std::cout << "Calculation for subtraction " << resstation1[i].Vj << " - " << resstation1[i].Vk << "= " << resstation1[i].result;
 								//we can now complete the execution and update the resultReady flag
 								resstation1[i].resultReady = true;
 								//reset the latency property
@@ -960,14 +960,14 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 						if (temp_operation == 50)// means BNEZ
 						{
-							std::cout << "issuing a BNEZ" << endl;
+							//std::cout << "issuing a BNEZ" << endl;
 							if (resstation1[i].lat - 1 == INT)
 							{
 
 								//add next iteration instructions to instruction set using loopstartline and loopendline
-								std::cout << "reservationstation. vj & vk bnez =====" << resstation1[i].Vj << "  " << resstation1[i].Vk << endl;
+								//std::cout << "reservationstation. vj & vk bnez =====" << resstation1[i].Vj << "  " << resstation1[i].Vk << endl;
 								resstation1[i].result = resstation1[i].Vj;
-								std::cout << "lst == " << lst << "led == " << led << endl;
+								//std::cout << "lst == " << lst << "led == " << led << endl;
 								if (resstation1[i].Vj != 0)
 								{
 									if (lst > inst1.size())//loop body is in after loop
@@ -993,11 +993,11 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 											{
 												Instruction I(inst1[k].rd, inst1[k].rs, inst1[k].rt, inst1[k].opcode);//(rd,rs,rt,operation)
-												std::cout << "instruction" << STRING_INST1[k];
-												//std::cout << "inst1.begin()" << inst1.begin();
-												std::cout << "error before";
+												//std::cout << "instruction" << STRING_INST1[k];
+												////std::cout << "inst1.begin()" << inst1.begin();
+												//std::cout << "error before";
 												inst1.insert(inst1.begin() + led + 1 + ipos, I);
-												std::cout << "error after";
+												//std::cout << "error after";
 												STRING_INST1.insert(STRING_INST1.begin() + led + 1 + ipos, STRING_INST1[k]);
 												ipos++;//incremented to add loop instruction in the proper order
 											}
@@ -1026,7 +1026,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 								resstation1[i].ISSUE_Lat = 0;
 								//set the Executeclock end
 								inst1[resstation1[i].instNum].executeClockEnd = Clock;
-								std::cout << "Current Instruction" << currentInst_ISSUE;
+								//std::cout << "Current Instruction" << currentInst_ISSUE;
 								Clock = Clock;//temporary fix for issue iteration of branch instruction clock cycle
 								loopclock = false; // set the loop clock to display the correct clock again
 
@@ -1038,14 +1038,14 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 						if (temp_operation == 51)// means BEZ
 						{
-							std::cout << "issuing a BNEZ" << endl;
+							//std::cout << "issuing a BNEZ" << endl;
 							if (resstation1[i].lat - 1 == INT)
 							{
 
 								//add next iteration instructions to instruction set using loopstartline and loopendline
-								std::cout << "reservationstation. vj & vk bnez =====" << resstation1[i].Vj << "  " << resstation1[i].Vk << endl;
+								//std::cout << "reservationstation. vj & vk bnez =====" << resstation1[i].Vj << "  " << resstation1[i].Vk << endl;
 								resstation1[i].result = resstation1[i].Vj;
-								std::cout << "lst == " << lst << "led == " << led << endl;
+								//std::cout << "lst == " << lst << "led == " << led << endl;
 								if (resstation1[i].Vj == 0)
 								{
 									if (lst > inst1.size())//loop body is in after loop
@@ -1071,11 +1071,11 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 											{
 												Instruction I(inst1[k].rd, inst1[k].rs, inst1[k].rt, inst1[k].opcode);//(rd,rs,rt,operation)
-												std::cout << "instruction" << STRING_INST1[k];
-												//std::cout << "inst1.begin()" << inst1.begin();
-												std::cout << "error before";
+												//std::cout << "instruction" << STRING_INST1[k];
+												////std::cout << "inst1.begin()" << inst1.begin();
+												//std::cout << "error before";
 												inst1.insert(inst1.begin() + led + 1 + ipos, I);
-												std::cout << "error after";
+												//std::cout << "error after";
 												STRING_INST1.insert(STRING_INST1.begin() + led + 1 + ipos, STRING_INST1[k]);
 												ipos++;//incremented to add loop instruction in the proper order
 											}
@@ -1105,7 +1105,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 								resstation1[i].ISSUE_Lat = 0;
 								//set the Executeclock end
 								inst1[resstation1[i].instNum].executeClockEnd = Clock;
-								std::cout << "Current Instruction" << currentInst_ISSUE;
+								//std::cout << "Current Instruction" << currentInst_ISSUE;
 								Clock = Clock;//temporary fix for issue iteration of branch instruction clock cycle
 								loopclock = false; // set the loop clock to display the correct clock again
 
@@ -1123,7 +1123,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 		}
 	}
 	//now that any possible instructions have begin execution reset all funcitonal units but divide to available if Pipelined
-	cout << FUstatus[0] << " " << FUstatus[1] << " " << FUstatus[2] << " " << FUstatus[3] << " " << FUstatus[4] << " " << endl;
+	//cout << FUstatus[0] << " " << FUstatus[1] << " " << FUstatus[2] << " " << FUstatus[3] << " " << FUstatus[4] << " " << endl;
 	if (Pipelined == true) { //If pipelined, reset all to available for next cc except divider
 		FUstatus[0] = -1;
 		FUstatus[1] = -1;
@@ -1133,13 +1133,13 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 		if (FUstatus[2] == Clock) {
 			FUstatus[2] = -1;
 		}
-		cout << "reseting the fu in pipeline true if" << endl;
+		//cout << "reseting the fu in pipeline true if" << endl;
 	}
 	else { //otherwise, set to available if they ended execution this cc
 		for (int i = 0; i < 5; i++) {
 			if (FUstatus[i] == Clock) {
 				FUstatus[i] = -1;
-				cout << "resetting fu for " << i << " in pipeline false if" << endl;
+				//cout << "resetting fu for " << i << " in pipeline false if" << endl;
 			}
 		}
 	}
@@ -1260,7 +1260,7 @@ void printclockcycletable(vector<Instruction> INST, vector<string> STRING_INST) 
 
 
 void printRegisters(vector<int> RegistersVector) {
-	std::cout << "Register Content:" << endl;
+	//std::cout << "Register Content:" << endl;
 	for (int i = 0; i < RegistersVector.size(); i++)
 		std::cout << RegistersVector[i] << ' ';
 	std::cout << endl;
@@ -1290,7 +1290,7 @@ int main()
 		}
 	}
 
-	cout << "File path for Latencies file: ";
+	//cout << "File path for Latencies file: ";
 	//string projectLatencies = "Latencies.txt"; //shortcut for not entering input manually
 	string projectLatencies;
 	//cin >> projectLatencies;
@@ -1350,13 +1350,13 @@ int main()
 
 	//display all to verify correctness
 
-	std::cout << FPMUL << endl;
-	std::cout << FPDIV << endl;
-	std::cout << FPADD << endl;
-	std::cout << FPLD << endl;
-	std::cout << FPALU << endl;
-	std::cout << LDINT << endl;
-	std::cout << INT << endl;
+	//std::cout << FPMUL << endl;
+	//std::cout << FPDIV << endl;
+	//std::cout << FPADD << endl;
+	//std::cout << FPLD << endl;
+	//std::cout << FPALU << endl;
+	//std::cout << LDINT << endl;
+	//std::cout << INT << endl;
 	ifstream isFile("instruction.txt");
 
 
@@ -1471,7 +1471,7 @@ int main()
 		int cnt = -1;
 		while (getline(isFile, line))
 		{
-			std::cout << line << endl;
+			//std::cout << line << endl;
 
 			cnt++;
 			string word;
@@ -1481,14 +1481,14 @@ int main()
 			{
 				looplinestart = cnt;
 				string looplabel = line.substr(0, found);
-				std::cout << "First occurrence is " << found << endl;
+				//std::cout << "First occurrence is " << found << endl;
 				//clip the loop part from the string
 				string tline = line.substr(found + 2);
-				std::cout << "tline===" << tline << endl;
+				//std::cout << "tline===" << tline << endl;
 				line = "";
 				line = tline;
-				std::cout << "line===" << line << endl;
-				std::cout << "looplinestart===" << looplinestart << endl;
+				//std::cout << "line===" << line << endl;
+				//std::cout << "looplinestart===" << looplinestart << endl;
 				operation.insert({ "loop",looplinestart }); // loop line number is added. The value is used to start the next iteration from this line.
 
 				cout << "Loop Label" << looplabel;
@@ -1508,7 +1508,7 @@ int main()
 		int cnt = -1;
 		while (getline(isFile, line))
 		{
-			std::cout << line << endl;
+			//std::cout << line << endl;
 
 			cnt++;
 			string word;
@@ -1518,10 +1518,10 @@ int main()
 			if (found != string::npos)
 			{
 				looplinestart = cnt;
-				std::cout << "First occurrence is " << found << endl;
+				//std::cout << "First occurrence is " << found << endl;
 				//clip the loop part from the string
 				string tline = line.substr(found + 2);
-				std::cout << "tline===" << tline << endl;
+				//std::cout << "tline===" << tline << endl;
 				line = "";
 				line = tline;
 
@@ -1538,7 +1538,7 @@ int main()
 			if (found != string::npos)
 			{
 				looplinened = cnt;
-				std::cout << "looplineend===" << looplinened << endl;
+				//std::cout << "looplineend===" << looplinened << endl;
 				operation.insert({ "loopend",looplinened });// loop's last instruction number.
 			}
 			str2 = "BEZ";
@@ -1546,7 +1546,7 @@ int main()
 			if (found != string::npos)
 			{
 				looplinened = cnt;
-				std::cout << "looplineend===" << looplinened << endl;
+				//std::cout << "looplineend===" << looplinened << endl;
 				operation.insert({ "loopend",looplinened });// loop's last instruction number.
 			}
 
@@ -1564,7 +1564,7 @@ int main()
 					if (it == operation.end())
 					{
 						// not found  
-						std::cout << "Element not foundr" << endl;
+						//std::cout << "Element not foundr" << endl;
 
 						// Handle Effective address computation Case like ld/sd
 						int pos1 = sub.find("(");
@@ -1572,9 +1572,9 @@ int main()
 
 						string reg_x = sub.substr(pos1 + 1, pos2 - pos1 - 1);
 						auto itx = operation.find(reg_x);
-						//std::cout << " Postions of ()" << endl;
-						//std::cout << pos1 << "  " << pos2 - 1 << "  " << reg_x;
-						//std::cout << "itx->second" << "  " << itx->second;
+						////std::cout << " Postions of ()" << endl;
+						////std::cout << pos1 << "  " << pos2 - 1 << "  " << reg_x;
+						////std::cout << "itx->second" << "  " << itx->second;
 						temp_i.push_back(itx->second);
 
 					}
@@ -1591,7 +1591,7 @@ int main()
 
 
 
-			//std::cout << "Temp_i size" << temp_i.size()<< endl;
+			////std::cout << "Temp_i size" << temp_i.size()<< endl;
 
 			if (temp_i.size() == 4)
 			{
@@ -1612,9 +1612,9 @@ int main()
 			}
 
 
-			//std::cout << temp_i.at(1) << temp_i.at(2) << temp_i.at(3) << temp_i.at(0);
+			////std::cout << temp_i.at(1) << temp_i.at(2) << temp_i.at(3) << temp_i.at(0);
 
-			//std::cout << "rd1" << I.rd;
+			////std::cout << "rd1" << I.rd;
 
 			while (!temp_i.empty())
 			{
@@ -1622,12 +1622,12 @@ int main()
 			}
 
 		}
-		std::cout << inst.size() << "   ";
+		//std::cout << inst.size() << "   ";
 		// Print to check Inst vector is properly initialized
 
 /*for (auto it1 : inst)
 		{
-			std::cout << it1.opcode << " ";
+			//std::cout << it1.opcode << " ";
 		}*/
 
 	}
@@ -1653,7 +1653,7 @@ int main()
 		//BNEZ version
 		if (inst[k].opcode == 50)
 		{
-			std::cout << "Inside bnez----" << k << endl;
+			//std::cout << "Inside bnez----" << k << endl;
 			//add instructions after loop
 			for (int m = k + 1; m < size_l; m++)
 			{
@@ -1669,7 +1669,7 @@ int main()
 		//BEZ version
 		if (inst[k].opcode == 51)
 		{
-			std::cout << "Inside bez" << k << endl;
+			//std::cout << "Inside bez" << k << endl;
 			//add instructions after loop
 			for (int m = k + 1; m < size_l; m++)
 			{
@@ -1685,7 +1685,7 @@ int main()
 		//BEZ version
 		if (inst[k].opcode == 51)
 		{
-			std::cout << "Inside bez" << k << endl;
+			//std::cout << "Inside bez" << k << endl;
 			//add instructions after loop
 			for (int m = k + 1; m < inst.size(); m++)
 			{
@@ -1699,8 +1699,8 @@ int main()
 			break;//break to avoid redundant iteration
 		}
 	}
-	std::cout << "Instruction Size" << inst.size() << endl;
-	std::cout << "Inst_afterloop size" << inst_afterloop.size() << endl;
+	//std::cout << "Instruction Size" << inst.size() << endl;
+	//std::cout << "Inst_afterloop size" << inst_afterloop.size() << endl;
 	// Main Loop 
 	do {
 		// Datapath
@@ -1714,9 +1714,9 @@ int main()
 		//printRegisters(registers);
 		if (!loopclock)
 			printclockcycletable(inst, string_inst);
-		//std::cout << "inst" << inst.size();
-		//std::cout << "Total Writebacks" << Total_WRITEBACKS;
-		//std::cout << "Total Writebacks" << Total_WRITEBACKS;
+		////std::cout << "inst" << inst.size();
+		////std::cout << "Total Writebacks" << Total_WRITEBACKS;
+		////std::cout << "Total Writebacks" << Total_WRITEBACKS;
 
 		// Check if all reservation stations are empty -> program done
 
