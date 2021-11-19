@@ -1,0 +1,27 @@
+void printclockcycletable(vector<Instruction> INST, vector<string> STRING_INST) {
+	char separator = ' ';
+	const int width = 20;
+	char lineSeperator = '-';
+	const int lineWidth = 35;
+
+	// Define column labels
+	 	std::cout << left <<setw(width) << setfill(separator) << "Instruction";
+	 		std::cout  << left << setw(width) << setfill(separator) << "Issue";
+	 			std::cout  << left << setw(width) << setfill(separator) << "Execute";
+	 				std::cout  << left << setw(width) << setfill(separator) << "WB";
+	 					std::cout  << left << setw(width) << setfill(separator) << "SystemClock" << endl;
+	 						std::cout << right << setw(width * 5) << setfill(separator) << Clock;
+	 							std::cout << endl;
+	 								//std::cout  << setw(lineWidth) << setfill(lineSeperator);
+	 									std::cout << endl;
+ 										// Define Row Labels and values
+ 											for (int i = 0; i < INST.size(); i++) {
+	
+	 											int w = (STRING_INST[i].size());
+	 											cout  << STRING_INST[i]<<endl;
+												cout << setw(width)<<setfill(separator)<<" ";
+	 											std::cout  <<left << setw(width) << setfill(separator) << INST[i].issueClock;
+	 											std::cout << left << INST[i].executeClockBegin << "-";
+	 											std::cout  << left << setw(width) << setfill(separator) << INST[i].executeClockEnd;
+	 											std::cout  << left << setw(width) << setfill(separator) << INST[i].writebackClock;
+	 											std::cout << endl;}
