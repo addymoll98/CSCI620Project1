@@ -8,6 +8,8 @@
 #include <sstream>
 #include <map> 
 #include<iomanip>
+#include <sys/stat.h>
+
 using namespace std;
 
 struct latencies { //declaring struct outside to use vectors - g++ compiler errors
@@ -135,7 +137,6 @@ int Clock = 0;
 // used to check if INST == WRITEBACKS to end program
 bool Done = true;
 bool Pipelined = true;
-
 int Total_WRITEBACKS = 0;
 // Counter for instructions; Used to end issue if value is equal to length of instructions
 int currentInst_ISSUE = 0;
@@ -190,7 +191,6 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 	{
 		for (int i = 0; i < addresst; i++) {
 			if (!resstation1[i + 0].busy) {
-
 				rstno = i;
 				resstation1[i].op = 1;
 				rstationFree = true;
@@ -494,8 +494,6 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 		}
 		cout << "at end of that loop, and issue lat is: " << resstation1[rstno].ISSUE_Lat << endl;
 	}
-	
-
 
 
 
@@ -713,7 +711,6 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 //execute with loop
 
 void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1, vector<registerStatus>& regstatus1, vector<int>& reg1, int FPMUL, int FPDIV, int FPADD, int FPLD, int FPALU, int LDINT, int INT, int lst, int led, vector<string>& STRING_INST1, vector<Instruction> INST_AFTERLOOP, vector<int>& FUstatus)
-
 {
 
 
@@ -1084,7 +1081,6 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 								}
 								if (resstation1[i].Vj != 0)//during final iteration add the instructions outside loop body.
-
 								{
 									//add instructions after loop
 									for (int m = 0; m < INST_AFTERLOOP.size(); m++)
@@ -1111,6 +1107,8 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 
 							}
+							
+
 						}
 					}
 				}
@@ -1142,6 +1140,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 				cout << "resetting fu for " << i << " in pipeline false if" << endl;
 			}
 		}
+
 	}
 }
 
@@ -1229,7 +1228,7 @@ void printclockcycletable(vector<Instruction> INST, vector<string> STRING_INST) 
 	cout << left << setw(30) << "Instruction";
 	cout << setw(17) << "Issue";
 	cout << setw(17) << "Execute";
-	cout << setw(17) << "WriteBack";
+	cout << setw(17) << "WriteCDB";
 	cout << setw(17) << "SystemClock" << endl;
 	cout << right << setw(83) << Clock << endl;
 	
@@ -1256,20 +1255,100 @@ void printRegisters(vector<int> RegistersVector) {
 }
 
 
+
 int main()
 {
 	int i, j;
 	string yn;
+	string path;
+	struct stat s;
+	bool fileInput = false;
+
+	ifstream latFile;
+	ifstream isFile;
+	
+	vector<latencies> l; //vector named l for latencies struct
+	vector<Instruction> inst;//Vector for Instruction class
+	vector<string> string_inst;
+
+	//Loop for getting Latencies file input 
+	do {
+		cout << "Enter the file path (or just the name) for the Latency input file: ";
+		cin >> path;
+		if( stat(path.c_str(),&s) == 0 )
+		{
+			if( s.st_mode & S_IFREG )
+			{
+				latFile.open(path.c_str());
+
+				int i = 0;
+
+				cout << "Success! Latency file has been found and read!" << endl;
+
+				while(!latFile.eof()) {
+
+					l.push_back(latencies()); //pushing a latencies struct object into the vector every time
+					latFile >> l[i].producer >> l[i].consumer >> l[i].latency; //then adding the values from the latencies file into that particular struct object
+					i++;
+					
+				}
+
+				latFile.close();
+
+				fileInput = true;
+			}
+			else
+			{
+				cout << "Error - couldn't find the file provided! Make sure you are entering the correct file path." << endl;
+			}
+		}
+		else
+		{
+			cout << "Error - couldn't find the file provided! Make sure you are entering the correct file path." << endl;
+		}
+	} while(!fileInput);
+
+
+	fileInput = false;
+
+
+
+	//Loop for getting Instructions file input
+	do {
+		cout << "Enter the file path (or just the name) for the Instruction input file: ";
+		cin >> path;
+		if( stat(path.c_str(),&s) == 0 )
+		{
+			if( s.st_mode & S_IFREG )
+			{
+				isFile.open(path.c_str());
+
+				cout << "Success! Instruction file has been found and read!" << endl;
+
+				fileInput = true;
+			}
+			else
+			{
+				cout << "Error - couldn't find the file provided! Make sure you are entering the correct file path." << endl;
+			}
+		}
+		else
+		{
+			cout << "Error - couldn't find the file provided! Make sure you are entering the correct file path." << endl;
+		}
+	} while(!fileInput);
+
+
 
 	cout << "Run functional units pipelined? (y/n) ";
 	cin >> yn;
 
 	while (1) {
-		if (yn == "y" | yn == "Y" | yn == "1") {
+		if (yn == "y" || yn == "Y" || yn == "1") {
 			Pipelined = 1;
 			break;
 		}
-		else if (yn == "n" | yn == "N" | yn == "0") {
+		else if (yn == "n" || yn == "N" || yn == "0") {
 			Pipelined = 0;
 			break;
 		}
@@ -1279,27 +1358,8 @@ int main()
 		}
 	}
 
-	cout << "File path for Latencies file: ";
-	//string projectLatencies = "Latencies.txt"; //shortcut for not entering input manually
-	string projectLatencies;
-	//cin >> projectLatencies;
-	//cout << "File path is" << projectLatencies << endl;
+
 	
-  projectLatencies = "latencies.txt";
-
-	vector<latencies> l; //vector named l for latencies struct
-	vector<Instruction> inst;//Vector for Instruction class
-	vector<string> string_inst;
-
-	ifstream latFile(projectLatencies.c_str());
-
-	i = 0;
-	while (!latFile.eof()) {
-		l.push_back(latencies()); //pushing a latencies struct object into the vector every time
-		latFile >> l[i].producer >> l[i].consumer >> l[i].latency; //then adding the values from the latencies file into that particular struct object
-		i++;
-	}
-	latFile.close();
 
 	//store latencies into individual variables
 
@@ -1336,17 +1396,6 @@ int main()
 			ss >> INT;
 		}
 	}
-
-	//display all to verify correctness
-
-	std::cout << FPMUL << endl;
-	std::cout << FPDIV << endl;
-	std::cout << FPADD << endl;
-	std::cout << FPLD << endl;
-	std::cout << FPALU << endl;
-	std::cout << LDINT << endl;
-	std::cout << INT << endl;
-	ifstream isFile("instruction.txt");
 
 
 	map<string, int> operation = {
@@ -1410,26 +1459,23 @@ int main()
 	reservationStation
 		ADD1(0, OperandInit, 999),
 		ADD2(0, OperandInit, 999);
-	//	ADD3(0, OperandInit, 999),
-	//	ADD4(0, OperandInit, 999);
+
 	reservationStation
 		MULT1(2, OperandInit, 999),
 		MULT2(2, OperandInit, 999);
-	//	MULT3(2, OperandInit, 999),
-	//	MULT4(2, OperandInit, 999);
+
 	reservationStation
 		DIV1(3, OperandInit, 999),
 		DIV2(3, OperandInit, 999);
-	//	DIV3(3, OperandInit, 999),
-	//	DIV4(3, OperandInit, 999);
+
 	reservationStation
 		LDSD1(4, OperandInit, 999),
 		LDSD2(4, OperandInit, 999);
-	//	LDSD3(4, OperandInit, 999),
-	//	LDSD4(4, OperandInit, 999);
+
 	reservationStation
 		BRANCH1(51, OperandInit, 999),
 		BRANCH2(51, OperandInit, 999);
+
 	reservationStation
 		INTEGER1(5, OperandInit, 999),
 		INTEGER2(5, OperandInit, 999);
@@ -1439,7 +1485,6 @@ int main()
 
 	vector<int> FUstatus = { -1,-1,-1,-1,-1,-1 }; //0-FPADD/SUB, 1-FPMUL, 2-FPDIV, 3-FP LD/SD, 4-Int,5-Branch -1 is not in use
 
-
 	// Initialize Register Status Class
 	registerStatus
 		F0(regEmpty), F1(regEmpty), F2(regEmpty), F3(regEmpty), F4(regEmpty), F5(regEmpty),
@@ -1447,7 +1492,6 @@ int main()
 		X0(regEmpty), X1(regEmpty), X2(regEmpty), X3(regEmpty), X4(regEmpty), X5(regEmpty), X6(regEmpty), X7(regEmpty);
 
 	vector<registerStatus> registerStatus = { F0, F1, F2, F3, F4, F5, F6, F7, F8, F9, F10, F11, F12,F13, F14, F15,F16,F17, F18, F19,F20, X0, X1, X2, X3, X4, X5, X6, X7 };
-
 
 	// Initialize register file vector
 	vector<int> registers = { ZERO_REG,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,0,21,22,23,24,25,26,27 };
@@ -1671,22 +1715,6 @@ int main()
 			}
 			break;//break to avoid redundant iteration
 		}
-		//BEZ version
-		if (inst[k].opcode == 51)
-		{
-			std::cout << "Inside bez"<<k<<endl;
-			//add instructions after loop
-			for (int m = k+1; m < inst.size(); m++)
-			{
-				inst_afterloop.push_back(inst[m]);
-			}
-			//delete the instructions after loop
-			for (int m = k + 1; m < inst.size(); m++)
-			{
-				inst.erase(inst.begin()+m);
-			}
-			break;//break to avoid redundant iteration
-		}
 	}
 	std::cout << "Instruction Size" << inst.size() << endl;
 	std::cout << "Inst_afterloop size" << inst_afterloop.size() << endl;
@@ -1698,7 +1726,7 @@ int main()
 		issue(inst, resStation, registerStatus, registers, operation);
 		execute(inst, resStation, registerStatus, registers, FPMUL, FPDIV, FPADD, FPLD, FPALU, LDINT, INT, looplinestart, looplinened, string_inst, inst_afterloop, FUstatus);
 		writeback(inst, resStation, registerStatus, registers);
-		
+
 		//print cc table
 		//printRegisters(registers);
 		if (!loopclock)
