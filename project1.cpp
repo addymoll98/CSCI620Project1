@@ -8,6 +8,8 @@
 #include <sstream>
 #include <map> 
 #include<iomanip>
+#include <sys/stat.h>
+
 using namespace std;
 
 struct latencies { //declaring struct outside to use vectors - g++ compiler errors
@@ -1237,10 +1239,10 @@ void printclockcycletable(vector<Instruction> INST, vector<string> STRING_INST) 
 
 	// Define column labels
 	cout << endl;
-	cout << left << setw(30) << "Instruction";
+	cout << "Instruction" <<endl;
 	cout << setw(17) << "Issue";
 	cout << setw(17) << "Execute";
-	cout << setw(17) << "WriteBack";
+	cout << setw(17) << "WriteCDB";
 	cout << setw(17) << "SystemClock" << endl;
 	cout << right << setw(83) << Clock << endl;
 
@@ -1249,7 +1251,7 @@ void printclockcycletable(vector<Instruction> INST, vector<string> STRING_INST) 
 	for (int i = 0; i < INST.size(); i++) {
 		execClockResult = to_string(INST[i].executeClockBegin) + "-" + to_string(INST[i].executeClockEnd); //combining into one string for ouputting
 
-		cout << left << setw(30) << STRING_INST[i];
+		cout << STRING_INST[i] << endl;
 		cout << setw(17) << INST[i].issueClock;
 		cout << setw(17) << execClockResult;
 		cout << setw(17) << INST[i].writebackClock << endl;
@@ -1274,13 +1276,90 @@ int main()
 
 	cout << "Run functional units pipelined? (y/n) ";
 	cin >> yn;
+	string path;
+	struct stat s;
+	bool fileInput = false;
+
+	ifstream latFile;
+	ifstream isFile;
+
+	vector<latencies> l; //vector named l for latencies struct
+	vector<Instruction> inst;//Vector for Instruction class
+	vector<string> string_inst;
+
+	//Loop for getting Latencies file input 
+	do {
+		cout << "Enter the file path (or just the name) for the Latency input file: ";
+		cin >> path;
+		if( stat(path.c_str(),&s) == 0 )
+		{
+			if( s.st_mode & S_IFREG )
+			{
+				latFile.open(path.c_str());
+
+				int i = 0;
+
+				cout << "Success! Latency file has been found and read!" << endl;
+
+				while(!latFile.eof()) {
+
+					l.push_back(latencies()); //pushing a latencies struct object into the vector every time
+					latFile >> l[i].producer >> l[i].consumer >> l[i].latency; //then adding the values from the latencies file into that particular struct object
+					i++;
+
+				}
+
+				latFile.close();
+
+				fileInput = true;
+			}
+			else
+			{
+				cout << "Error - couldn't find the file provided! Make sure you are entering the correct file path." << endl;
+			}
+		}
+		else
+		{
+			cout << "Error - couldn't find the file provided! Make sure you are entering the correct file path." << endl;
+		}
+	} while(!fileInput);
+
+
+	fileInput = false;
+
+
+
+	//Loop for getting Instructions file input
+	do {
+		cout << "Enter the file path (or just the name) for the Instruction input file: ";
+		cin >> path;
+		if( stat(path.c_str(),&s) == 0 )
+		{
+			if( s.st_mode & S_IFREG )
+			{
+				isFile.open(path.c_str());
+
+				cout << "Success! Instruction file has been found and read!" << endl;
+
+				fileInput = true;
+			}
+			else
+			{
+				cout << "Error - couldn't find the file provided! Make sure you are entering the correct file path." << endl;
+			}
+		}
+		else
+		{
+			cout << "Error - couldn't find the file provided! Make sure you are entering the correct file path." << endl;
+		}
+	} while(!fileInput);
 
 	while (1) {
-		if (yn == "y" | yn == "Y" | yn == "1") {
+		if (yn == "y" || yn == "Y" || yn == "1") {
 			Pipelined = 1;
 			break;
 		}
-		else if (yn == "n" | yn == "N" | yn == "0") {
+		else if (yn == "n" || yn == "N" || yn == "0") {
 			Pipelined = 0;
 			break;
 		}
@@ -1290,27 +1369,6 @@ int main()
 		}
 	}
 
-	//cout << "File path for Latencies file: ";
-	//string projectLatencies = "Latencies.txt"; //shortcut for not entering input manually
-	string projectLatencies;
-	//cin >> projectLatencies;
-	//cout << "File path is" << projectLatencies << endl;
-
-	projectLatencies = "latencies.txt";
-
-	vector<latencies> l; //vector named l for latencies struct
-	vector<Instruction> inst;//Vector for Instruction class
-	vector<string> string_inst;
-
-	ifstream latFile(projectLatencies.c_str());
-
-	i = 0;
-	while (!latFile.eof()) {
-		l.push_back(latencies()); //pushing a latencies struct object into the vector every time
-		latFile >> l[i].producer >> l[i].consumer >> l[i].latency; //then adding the values from the latencies file into that particular struct object
-		i++;
-	}
-	latFile.close();
 
 	//store latencies into individual variables
 
@@ -1357,7 +1415,7 @@ int main()
 	//std::cout << FPALU << endl;
 	//std::cout << LDINT << endl;
 	//std::cout << INT << endl;
-	ifstream isFile("instruction.txt");
+	//ifstream isFile("instruction.txt");
 
 
 	map<string, int> operation = {
@@ -1421,23 +1479,19 @@ int main()
 	reservationStation
 		ADD1(0, OperandInit, 999),
 		ADD2(0, OperandInit, 999);
-	//	ADD3(0, OperandInit, 999),
-	//	ADD4(0, OperandInit, 999);
+
 	reservationStation
 		MULT1(2, OperandInit, 999),
 		MULT2(2, OperandInit, 999);
-	//	MULT3(2, OperandInit, 999),
-	//	MULT4(2, OperandInit, 999);
+
 	reservationStation
 		DIV1(3, OperandInit, 999),
 		DIV2(3, OperandInit, 999);
-	//	DIV3(3, OperandInit, 999),
-	//	DIV4(3, OperandInit, 999);
+
 	reservationStation
 		LDSD1(4, OperandInit, 999),
 		LDSD2(4, OperandInit, 999);
-	//	LDSD3(4, OperandInit, 999),
-	//	LDSD4(4, OperandInit, 999);
+
 	reservationStation
 		BRANCH1(51, OperandInit, 999),
 		BRANCH2(51, OperandInit, 999);
@@ -1677,22 +1731,6 @@ int main()
 			}
 			//delete the instructions after loop
 			for (int m = size_l - 1; m > k; m--)
-			{
-				inst.erase(inst.begin() + m);
-			}
-			break;//break to avoid redundant iteration
-		}
-		//BEZ version
-		if (inst[k].opcode == 51)
-		{
-			//std::cout << "Inside bez" << k << endl;
-			//add instructions after loop
-			for (int m = k + 1; m < inst.size(); m++)
-			{
-				inst_afterloop.push_back(inst[m]);
-			}
-			//delete the instructions after loop
-			for (int m = k + 1; m < inst.size(); m++)
 			{
 				inst.erase(inst.begin() + m);
 			}
