@@ -54,7 +54,7 @@ public:
 		executeClockBegin = 0;
 		executeClockEnd = 0;
 		writebackClock = 0;
-		
+
 
 	}
 };
@@ -494,7 +494,7 @@ int issue(vector<Instruction>& inst1, vector<reservationStation>& resstation1, v
 		}
 		cout << "at end of that loop, and issue lat is: " << resstation1[rstno].ISSUE_Lat << endl;
 	}
-	
+
 
 
 
@@ -978,16 +978,16 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 											if (INST_AFTERLOOP[m].loopbody == true)
 											{
 												inst1.push_back(INST_AFTERLOOP[m]);
-												STRING_INST1[inst1.size()-1] = STRING_INST1[k];// insert String in order for jump instructions
+												STRING_INST1[inst1.size() - 1] = STRING_INST1[k];// insert String in order for jump instructions
 												k++;
 											}
-											
+
 										}
 
 
 									}
 									else
-									{ 
+									{
 										for (int k = lst; k <= led; k++)
 										{
 
@@ -1032,7 +1032,7 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 
 							}
-							
+
 
 						}
 
@@ -1148,14 +1148,25 @@ void execute(vector<Instruction>& inst1, vector<reservationStation>& resstation1
 
 void writeback(vector<Instruction>& inst1, vector<reservationStation>& resstation1, vector<registerStatus>& regstatus1, vector<int>& reg1)
 {
+	
 	for (int i = 0; i < resstation1.size(); i++)//loop through reservation stations
 	{
+		//bool waw = false;
 		if (resstation1[i].resultReady) // check if result ready flag is true. If it is true that means execution cycle is completed
 		{
 			if (resstation1[i].WRITEBACK_Lat == WRITEBACK_Lat)//check if writeback latency is equal to 1 else wait for 1 cc
 			{
+				int inum = resstation1[i].instNum;
+				/*for (int j = 0; j < inum; i++)
+				{
+					if ((inst1[inum].rd == inst1[j].rd) && (inst1[j].writebackClock == 0))
+					{
+						waw = true;
+					}
+				}*/
 				if (inst1[resstation1[i].instNum].writebackClock == 0)// check if writeback clock is in default value.
 				{
+
 					inst1[resstation1[i].instNum].writebackClock = Clock;// set the writeback clock value to the current clock
 					if (resstation1[i].a == 3)
 					{
@@ -1232,7 +1243,7 @@ void printclockcycletable(vector<Instruction> INST, vector<string> STRING_INST) 
 	cout << setw(17) << "WriteBack";
 	cout << setw(17) << "SystemClock" << endl;
 	cout << right << setw(83) << Clock << endl;
-	
+
 
 	// Define Row Labels and values
 	for (int i = 0; i < INST.size(); i++) {
@@ -1284,8 +1295,8 @@ int main()
 	string projectLatencies;
 	//cin >> projectLatencies;
 	//cout << "File path is" << projectLatencies << endl;
-	
-  projectLatencies = "latencies.txt";
+
+	projectLatencies = "latencies.txt";
 
 	vector<latencies> l; //vector named l for latencies struct
 	vector<Instruction> inst;//Vector for Instruction class
@@ -1479,7 +1490,7 @@ int main()
 				std::cout << "line===" << line << endl;
 				std::cout << "looplinestart===" << looplinestart << endl;
 				operation.insert({ "loop",looplinestart }); // loop line number is added. The value is used to start the next iteration from this line.
-				
+
 				cout << "Loop Label" << looplabel;
 				cout << "-----------";
 				operation.insert({ looplabel,looplinestart });// add the loop label into the map to encode the instruction
@@ -1538,7 +1549,7 @@ int main()
 				std::cout << "looplineend===" << looplinened << endl;
 				operation.insert({ "loopend",looplinened });// loop's last instruction number.
 			}
-			
+
 			while (sl >> word)
 			{
 				stringstream sw(word);
@@ -1624,7 +1635,7 @@ int main()
 	if (looplinestart > looplinened)//If branch inst appears first and loop body appears after that this snippet is used to change loop end value
 	{
 		looplinened = inst.size();
-		operation.insert({ "loopend",looplinened});
+		operation.insert({ "loopend",looplinened });
 	}
 
 	for (int k = 0; k < inst.size(); k++)
@@ -1674,16 +1685,16 @@ int main()
 		//BEZ version
 		if (inst[k].opcode == 51)
 		{
-			std::cout << "Inside bez"<<k<<endl;
+			std::cout << "Inside bez" << k << endl;
 			//add instructions after loop
-			for (int m = k+1; m < inst.size(); m++)
+			for (int m = k + 1; m < inst.size(); m++)
 			{
 				inst_afterloop.push_back(inst[m]);
 			}
 			//delete the instructions after loop
 			for (int m = k + 1; m < inst.size(); m++)
 			{
-				inst.erase(inst.begin()+m);
+				inst.erase(inst.begin() + m);
 			}
 			break;//break to avoid redundant iteration
 		}
@@ -1698,7 +1709,7 @@ int main()
 		issue(inst, resStation, registerStatus, registers, operation);
 		execute(inst, resStation, registerStatus, registers, FPMUL, FPDIV, FPADD, FPLD, FPALU, LDINT, INT, looplinestart, looplinened, string_inst, inst_afterloop, FUstatus);
 		writeback(inst, resStation, registerStatus, registers);
-		
+
 		//print cc table
 		//printRegisters(registers);
 		if (!loopclock)
